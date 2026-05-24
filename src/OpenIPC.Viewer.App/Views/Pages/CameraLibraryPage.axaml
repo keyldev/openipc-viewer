@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
+             x:Class="OpenIPC.Viewer.App.Views.Pages.CameraLibraryPage"
+             x:DataType="vm:CameraLibraryPageViewModel">
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Header -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+      <TextBlock Grid.Column="0"
+                 Text="{Binding Title}"
+                 FontSize="{StaticResource FontSizeXl}"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource TextPrimaryBrush}"
+                 VerticalAlignment="Center" />
+      <Button Grid.Column="1"
+              Content="+ Add camera"
+              Command="{Binding AddCameraCommand}"
+              Padding="14,8"
+              Background="{StaticResource AccentBrush}"
+              Foreground="White"
+              CornerRadius="8" />
+    </Grid>
+
+    <!-- Empty state -->
+    <StackPanel Grid.Row="1"
+                IsVisible="{Binding IsEmpty}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Spacing="12">
+      <TextBlock Text="No cameras yet"
+                 FontSize="{StaticResource FontSizeLg}"
+                 Foreground="{StaticResource TextSecondaryBrush}"
+                 HorizontalAlignment="Center" />
+      <Button Content="+ Add camera"
+              Command="{Binding AddCameraCommand}"
+              Padding="14,8"
+              Background="{StaticResource AccentBrush}"
+              Foreground="White"
+              CornerRadius="8"
+              HorizontalAlignment="Center" />
+    </StackPanel>
+
+    <!-- List -->
+    <ScrollViewer Grid.Row="1" IsVisible="{Binding HasCameras}">
+      <ItemsControl ItemsSource="{Binding Cameras}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="12" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:CameraRowViewModel">
+            <Border Background="{StaticResource Bg2Brush}"
+                    BorderBrush="{StaticResource BorderWeakBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="16">
+              <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+
+                <Border Grid.Column="0" Grid.RowSpan="2"
+                        Width="96" Height="64"
+                        Background="{StaticResource Bg0Brush}"
+                        CornerRadius="6"
+                        Margin="0,0,16,0">
+                  <TextBlock Text="cam"
+                             FontFamily="{StaticResource FontMono}"
+                             FontSize="{StaticResource FontSizeSm}"
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+                </Border>
+
+                <TextBlock Grid.Column="1" Grid.Row="0"
+                           Text="{Binding Name}"
+                           FontSize="{StaticResource FontSizeMd}"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+
+                <StackPanel Grid.Column="1" Grid.Row="1"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            Margin="0,4,0,0">
+                  <TextBlock Text="{Binding HostAndPort}"
+                             FontFamily="{StaticResource FontMono}"
+                             FontSize="{StaticResource FontSizeSm}"
+                             Foreground="{StaticResource TextSecondaryBrush}" />
+                  <Border Background="{StaticResource Bg3Brush}"
+                          CornerRadius="3"
+                          Padding="6,2">
+                    <TextBlock Text="OFFLINE"
+                               FontFamily="{StaticResource FontMono}"
+                               FontSize="10"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Grid.RowSpan="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                  <Button Content="Edit"
+                          Padding="10,6"
+                          Background="Transparent"
+                          BorderBrush="{StaticResource BorderMediumBrush}"
+                          BorderThickness="1"
+                          CornerRadius="6"
+                          Foreground="{StaticResource TextPrimaryBrush}"
+                          Command="{Binding $parent[ItemsControl].((vm:CameraLibraryPageViewModel)DataContext).EditCameraCommand}"
+                          CommandParameter="{Binding}" />
+                  <Button Content="Delete"
+                          Padding="10,6"
+                          Background="Transparent"
+                          BorderBrush="{StaticResource BorderMediumBrush}"
+                          BorderThickness="1"
+                          CornerRadius="6"
+                          Foreground="{StaticResource DangerBrush}"
+                          Command="{Binding $parent[ItemsControl].((vm:CameraLibraryPageViewModel)DataContext).DeleteCameraCommand}"
+                          CommandParameter="{Binding}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </Grid>
+</UserControl>

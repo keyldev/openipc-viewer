@@ -1,7 +1,9 @@
 using System;
+using System.Threading;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenIPC.Viewer.Core.Persistence;
 
 namespace OpenIPC.Viewer.Desktop;
 
@@ -19,6 +21,10 @@ internal static class Program
 
         try
         {
+            services.GetRequiredService<IMigrationRunner>()
+                .MigrateAsync(CancellationToken.None)
+                .GetAwaiter().GetResult();
+
             return BuildAvaloniaApp(services)
                 .StartWithClassicDesktopLifetime(args);
         }
@@ -31,7 +37,7 @@ internal static class Program
         {
             logger.LogInformation("OpenIPC.Viewer shutting down");
             Serilog.Log.CloseAndFlush();
-            (services as IDisposable)?.Dispose();
+            services.Dispose();
         }
     }
 

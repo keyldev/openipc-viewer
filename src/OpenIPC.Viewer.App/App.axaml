@@ -17,8 +17,8 @@
     <DataTemplate DataType="vm:LivePageViewModel">
       <pages:LivePage />
     </DataTemplate>
-    <DataTemplate DataType="vm:LibraryPageViewModel">
-      <pages:LibraryPage />
+    <DataTemplate DataType="vm:CameraLibraryPageViewModel">
+      <pages:CameraLibraryPage />
     </DataTemplate>
     <DataTemplate DataType="vm:RecordingsPageViewModel">
       <pages:RecordingsPage />

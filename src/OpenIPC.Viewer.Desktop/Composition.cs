@@ -4,7 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
+using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels;
+using OpenIPC.Viewer.Core.Persistence;
+using OpenIPC.Viewer.Core.Platform;
+using OpenIPC.Viewer.Core.Services;
+using OpenIPC.Viewer.Infrastructure.Persistence;
+using OpenIPC.Viewer.Infrastructure.Secrets;
 using Serilog;
 
 namespace OpenIPC.Viewer.Desktop;
@@ -26,9 +32,36 @@ internal static class Composition
             b.AddSerilog(serilog, dispose: true);
         });
 
+        // Platform
+        services.AddSingleton<IFileSystem, DesktopFileSystem>();
+        services.AddSingleton<ISecretsStore>(sp =>
+        {
+            if (!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException(
+                    "DPAPI secret store is Windows-only; Linux/macOS stores land in Phase 8.");
+            return new DpapiSecretsStore(sp.GetRequiredService<IFileSystem>().AppDataDir);
+        });
+
+        // Persistence
+        services.AddSingleton<IDbConnectionFactory>(sp =>
+        {
+            var fs = sp.GetRequiredService<IFileSystem>();
+            return new SqliteConnectionFactory(Path.Combine(fs.AppDataDir.FullName, "openipc-viewer.db"));
+        });
+        services.AddSingleton<IMigrationRunner, MigrationRunner>();
+        services.AddSingleton<ICameraRepository, SqliteCameraRepository>();
+        services.AddSingleton<IGroupRepository, SqliteGroupRepository>();
+
+        // Domain services
+        services.AddSingleton<CameraDirectoryService>();
+
+        // UI services
+        services.AddSingleton<IDialogService, DialogService>();
+
+        // ViewModels
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<LivePageViewModel>();
-        services.AddTransient<LibraryPageViewModel>();
+        services.AddTransient<CameraLibraryPageViewModel>();
         services.AddTransient<RecordingsPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
 

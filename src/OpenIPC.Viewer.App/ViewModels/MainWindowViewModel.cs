@@ -6,7 +6,7 @@ namespace OpenIPC.Viewer.App.ViewModels;
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
     public LivePageViewModel Live { get; }
-    public LibraryPageViewModel Library { get; }
+    public CameraLibraryPageViewModel Library { get; }
     public RecordingsPageViewModel Recordings { get; }
     public SettingsPageViewModel Settings { get; }
 
@@ -18,21 +18,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private ViewModelBase _currentPage;
 
     public bool IsLiveSelected => CurrentPage is LivePageViewModel;
-    public bool IsLibrarySelected => CurrentPage is LibraryPageViewModel;
+    public bool IsLibrarySelected => CurrentPage is CameraLibraryPageViewModel;
     public bool IsRecordingsSelected => CurrentPage is RecordingsPageViewModel;
     public bool IsSettingsSelected => CurrentPage is SettingsPageViewModel;
 
-    public MainWindowViewModel()
-        : this(new LivePageViewModel(),
-               new LibraryPageViewModel(),
-               new RecordingsPageViewModel(),
-               new SettingsPageViewModel())
-    {
-    }
-
     public MainWindowViewModel(
         LivePageViewModel live,
-        LibraryPageViewModel library,
+        CameraLibraryPageViewModel library,
         RecordingsPageViewModel recordings,
         SettingsPageViewModel settings)
     {
@@ -40,7 +32,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         Library = library;
         Recordings = recordings;
         Settings = settings;
-        _currentPage = live;
+        _currentPage = library; // Phase 1 lands on Library so the new page is visible by default.
     }
 
     [RelayCommand]

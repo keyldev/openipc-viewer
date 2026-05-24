@@ -1,0 +1,118 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenIPC.Viewer.App.ViewModels.Dialogs"
+        x:Class="OpenIPC.Viewer.App.Views.Dialogs.CameraEditorWindow"
+        x:DataType="vm:CameraEditorViewModel"
+        Title="{Binding Title}"
+        Width="520" Height="640"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{StaticResource Bg1Brush}"
+        FontFamily="{StaticResource FontSans}"
+        FontSize="{StaticResource FontSizeBase}"
+        Foreground="{StaticResource TextPrimaryBrush}">
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+    <TextBlock Grid.Row="0"
+               Text="{Binding Title}"
+               FontSize="{StaticResource FontSizeLg}"
+               FontWeight="SemiBold"
+               Margin="0,0,0,20" />
+
+    <ScrollViewer Grid.Row="1">
+      <StackPanel Spacing="14">
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Name" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+          <TextBox Text="{Binding Name, Mode=TwoWay}" PlaceholderText="Front door" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,12,140">
+          <StackPanel Grid.Column="0" Spacing="6">
+            <TextBlock Text="Host" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+            <TextBox Text="{Binding Host, Mode=TwoWay}" PlaceholderText="192.168.1.10" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="6">
+            <TextBlock Text="HTTP port" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+            <NumericUpDown Value="{Binding HttpPort, Mode=TwoWay}" Minimum="1" Maximum="65535" Increment="1" FormatString="0" />
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="ONVIF port (optional)" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+          <TextBox Text="{Binding OnvifPortText, Mode=TwoWay}" PlaceholderText="8899" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="RTSP main URI" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+            <Button Grid.Column="1"
+                    Content="Auto from host"
+                    Command="{Binding AutoDeriveRtspCommand}"
+                    Background="Transparent"
+                    Foreground="{StaticResource AccentBrush}"
+                    Padding="0"
+                    FontSize="{StaticResource FontSizeSm}" />
+          </Grid>
+          <TextBox Text="{Binding RtspMainText, Mode=TwoWay}" PlaceholderText="rtsp://192.168.1.10/" FontFamily="{StaticResource FontMono}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="RTSP sub URI (optional)" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+          <TextBox Text="{Binding RtspSubText, Mode=TwoWay}" PlaceholderText="rtsp://192.168.1.10/stream1" FontFamily="{StaticResource FontMono}" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,12,*">
+          <StackPanel Grid.Column="0" Spacing="6">
+            <TextBlock Text="Username" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+            <TextBox Text="{Binding Username, Mode=TwoWay}" PlaceholderText="admin" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="6">
+            <TextBlock Text="Password" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+            <TextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="•" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Text="{Binding ErrorMessage}"
+                   Foreground="{StaticResource DangerBrush}"
+                   FontSize="{StaticResource FontSizeSm}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   TextWrapping="Wrap" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,20,0,0">
+      <Button Grid.Column="0"
+              Content="Test connection"
+              IsEnabled="{Binding CanTestConnection}"
+              Padding="12,8"
+              Background="Transparent"
+              BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Foreground="{StaticResource TextSecondaryBrush}" />
+      <Button Grid.Column="2"
+              Name="CancelButton"
+              Content="Cancel"
+              Padding="14,8"
+              Background="Transparent"
+              BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Foreground="{StaticResource TextPrimaryBrush}"
+              Margin="0,0,8,0" />
+      <Button Grid.Column="3"
+              Name="SaveButton"
+              Content="Save"
+              Padding="14,8"
+              Background="{StaticResource AccentBrush}"
+              Foreground="White"
+              CornerRadius="6"
+              IsDefault="True" />
+    </Grid>
+
+  </Grid>
+
+</Window>

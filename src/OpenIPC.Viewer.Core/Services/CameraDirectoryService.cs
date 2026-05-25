@@ -11,11 +11,13 @@ namespace OpenIPC.Viewer.Core.Services;
 public sealed class CameraDirectoryService
 {
     private readonly ICameraRepository _cameras;
+    private readonly IGroupRepository _groups;
     private readonly ISecretsStore _secrets;
 
-    public CameraDirectoryService(ICameraRepository cameras, ISecretsStore secrets)
+    public CameraDirectoryService(ICameraRepository cameras, IGroupRepository groups, ISecretsStore secrets)
     {
         _cameras = cameras;
+        _groups = groups;
         _secrets = secrets;
     }
 
@@ -24,6 +26,23 @@ public sealed class CameraDirectoryService
 
     public Task<Camera?> GetAsync(CameraId id, CancellationToken ct) =>
         _cameras.GetAsync(id, ct);
+
+    // Group ops are thin pass-throughs — the repo already enforces
+    // FK cascade on delete, so removing a group nulls cameras' GroupId
+    // automatically (well, doesn't — schema has REFERENCES Groups(Id)
+    // without ON DELETE; we let SQLite reject the delete and surface the
+    // exception to the UI for confirmation flow).
+    public Task<IReadOnlyList<CameraGroup>> ListGroupsAsync(CancellationToken ct) =>
+        _groups.GetAllAsync(ct);
+
+    public Task<GroupId> AddGroupAsync(string name, CancellationToken ct) =>
+        _groups.AddAsync(name, sortOrder: 0, ct);
+
+    public Task RenameGroupAsync(GroupId id, string name, CancellationToken ct) =>
+        _groups.RenameAsync(id, name, ct);
+
+    public Task RemoveGroupAsync(GroupId id, CancellationToken ct) =>
+        _groups.RemoveAsync(id, ct);
 
     public async Task<CameraId> AddAsync(NewCameraRequest req, CancellationToken ct)
     {

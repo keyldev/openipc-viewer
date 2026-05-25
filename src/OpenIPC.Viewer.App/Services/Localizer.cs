@@ -69,6 +69,14 @@ public sealed class Localizer : INotifyPropertyChanged
         ["Library.RowDelete"] = "Delete",
         ["Library.RowShowInGrid"] = "Show in grid",
         ["Library.Offline"] = "OFFLINE",
+        ["Library.AllGroups"] = "All groups",
+        ["Library.ManageGroups"] = "Groups…",
+
+        ["Groups.WindowTitle"] = "Manage groups",
+        ["Groups.Title"] = "Camera groups",
+        ["Groups.Empty"] = "No groups yet",
+        ["Groups.NewName"] = "New group name",
+        ["Groups.Add"] = "Add",
 
         ["Welcome.Title"] = "OpenIPC Viewer",
         ["Welcome.Tagline"] = "Cross-platform viewer for OpenIPC IP cameras",
@@ -131,6 +139,14 @@ public sealed class Localizer : INotifyPropertyChanged
         ["Library.RowDelete"] = "Удалить",
         ["Library.RowShowInGrid"] = "В гриде",
         ["Library.Offline"] = "ОФЛАЙН",
+        ["Library.AllGroups"] = "Все группы",
+        ["Library.ManageGroups"] = "Группы…",
+
+        ["Groups.WindowTitle"] = "Управление группами",
+        ["Groups.Title"] = "Группы камер",
+        ["Groups.Empty"] = "Групп пока нет",
+        ["Groups.NewName"] = "Название новой группы",
+        ["Groups.Add"] = "Добавить",
 
         ["Welcome.Title"] = "OpenIPC Viewer",
         ["Welcome.Tagline"] = "Кросс-платформенный просмотрщик IP-камер OpenIPC",

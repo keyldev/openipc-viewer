@@ -9,8 +9,9 @@ public sealed class CameraDirectoryServiceTests
     private static (CameraDirectoryService Service, InMemoryCameraRepository Cameras, InMemorySecretsStore Secrets) Create()
     {
         var cameras = new InMemoryCameraRepository();
+        var groups = new InMemoryGroupRepository();
         var secrets = new InMemorySecretsStore();
-        return (new CameraDirectoryService(cameras, secrets), cameras, secrets);
+        return (new CameraDirectoryService(cameras, groups, secrets), cameras, secrets);
     }
 
     private static NewCameraRequest BuildRequest(string name = "Front door", string user = "admin", string pass = "12345") =>

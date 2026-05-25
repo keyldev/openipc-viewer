@@ -1,3 +1,4 @@
+using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using OpenIPC.Viewer.App.ViewModels.Dialogs;
@@ -12,6 +13,11 @@ public sealed partial class CameraEditorWindow : Window
 
         this.FindControl<Button>("CancelButton")!.Click += (_, _) => Close(null);
         this.FindControl<Button>("SaveButton")!.Click += OnSave;
+        Opened += async (_, _) =>
+        {
+            if (DataContext is CameraEditorViewModel vm)
+                await vm.LoadGroupsAsync(CancellationToken.None);
+        };
     }
 
     private void OnSave(object? sender, RoutedEventArgs e)

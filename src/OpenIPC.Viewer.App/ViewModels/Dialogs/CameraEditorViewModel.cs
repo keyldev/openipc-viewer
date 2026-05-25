@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
@@ -7,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Core.Entities;
+using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
 
 namespace OpenIPC.Viewer.App.ViewModels.Dialogs;
@@ -14,7 +16,9 @@ namespace OpenIPC.Viewer.App.ViewModels.Dialogs;
 public sealed partial class CameraEditorViewModel : ViewModelBase
 {
     private readonly IVideoEngine? _engine;
+    private readonly CameraDirectoryService? _directory;
     private readonly ILogger<CameraEditorViewModel>? _logger;
+    private GroupId? _pendingGroupId;
 
     public CameraId? EditingId { get; }
     public string Title => EditingId is null ? "Add camera" : "Edit camera";
@@ -27,6 +31,10 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
     [ObservableProperty] private string _rtspSubText = "";
     [ObservableProperty] private string _username = "";
     [ObservableProperty] private string _password = "";
+    [ObservableProperty] private CameraGroup? _selectedGroup;
+
+    // Includes a leading null entry so the user can pick "no group".
+    public ObservableCollection<CameraGroup?> AvailableGroups { get; } = new();
 
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private string? _testStatus;
@@ -39,14 +47,15 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
 
     public CameraEditorViewModel() { }
 
-    public CameraEditorViewModel(IVideoEngine engine, ILogger<CameraEditorViewModel> logger)
+    public CameraEditorViewModel(IVideoEngine engine, CameraDirectoryService directory, ILogger<CameraEditorViewModel> logger)
     {
         _engine = engine;
+        _directory = directory;
         _logger = logger;
     }
 
-    public CameraEditorViewModel(Camera existing, CameraCredentials? credentials, IVideoEngine engine, ILogger<CameraEditorViewModel> logger)
-        : this(engine, logger)
+    public CameraEditorViewModel(Camera existing, CameraCredentials? credentials, IVideoEngine engine, CameraDirectoryService directory, ILogger<CameraEditorViewModel> logger)
+        : this(engine, directory, logger)
     {
         EditingId = existing.Id;
         Name = existing.Name;
@@ -57,6 +66,24 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
         RtspSubText = existing.RtspSubUri?.ToString() ?? "";
         Username = credentials?.Username ?? "";
         Password = credentials?.Password ?? "";
+        _pendingGroupId = existing.GroupId;
+    }
+
+    public async Task LoadGroupsAsync(CancellationToken ct)
+    {
+        if (_directory is null) return;
+        var groups = await _directory.ListGroupsAsync(ct).ConfigureAwait(true);
+        AvailableGroups.Clear();
+        AvailableGroups.Add(null); // "(no group)" entry
+        foreach (var g in groups) AvailableGroups.Add(g);
+
+        // Restore selection if editing — match by Id since the loaded list
+        // is a fresh set of records.
+        if (_pendingGroupId is { } id)
+        {
+            foreach (var g in AvailableGroups)
+                if (g is not null && g.Id.Equals(id)) { SelectedGroup = g; break; }
+        }
     }
 
     [RelayCommand]
@@ -132,7 +159,8 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
                 OnvifPort: onvifPort,
                 RtspMainUri: rtspMain,
                 RtspSubUri: rtspSub,
-                Credentials: credentials);
+                Credentials: credentials,
+                GroupId: SelectedGroup?.Id);
         }
         else
         {
@@ -143,7 +171,8 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
                 OnvifPort: onvifPort,
                 RtspMainUri: rtspMain,
                 RtspSubUri: rtspSub,
-                Credentials: credentials);
+                Credentials: credentials,
+                GroupId: SelectedGroup?.Id);
         }
 
         return ok;

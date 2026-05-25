@@ -74,6 +74,20 @@
           </StackPanel>
         </Grid>
 
+        <StackPanel Spacing="6">
+          <TextBlock Text="Group" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeSm}" />
+          <ComboBox ItemsSource="{Binding AvailableGroups}"
+                    SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+                    PlaceholderText="(no group)"
+                    HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name, FallbackValue='(no group)', TargetNullValue='(no group)'}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+
         <TextBlock Text="{Binding ErrorMessage}"
                    Foreground="{StaticResource DangerBrush}"
                    FontSize="{StaticResource FontSizeSm}"

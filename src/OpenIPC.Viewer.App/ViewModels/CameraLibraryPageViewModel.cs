@@ -36,13 +36,22 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
 
     private readonly UserSettingsService _userSettings;
     private readonly IDiscoveryService _discovery;
+    private readonly ManageGroupsDialogFactory _manageGroupsFactory;
     private bool _autoScanRanThisSession;
+    private System.Collections.Generic.IReadOnlyList<Camera> _allCameras = System.Array.Empty<Camera>();
+
+    public ObservableCollection<CameraGroup?> AvailableGroups { get; } = new();
+
+    [ObservableProperty] private CameraGroup? _selectedGroupFilter;
+
+    partial void OnSelectedGroupFilterChanged(CameraGroup? value) => RefilterCameras();
 
     public CameraLibraryPageViewModel(
         CameraDirectoryService directory,
         IDialogService dialogs,
         CameraEditorFactory editorFactory,
         DiscoveryDialogFactory discoveryFactory,
+        ManageGroupsDialogFactory manageGroupsFactory,
         UserSettingsService userSettings,
         IDiscoveryService discovery,
         ILogger<CameraLibraryPageViewModel> logger)
@@ -51,6 +60,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         _dialogs = dialogs;
         _editorFactory = editorFactory;
         _discoveryFactory = discoveryFactory;
+        _manageGroupsFactory = manageGroupsFactory;
         _userSettings = userSettings;
         _discovery = discovery;
         _logger = logger;
@@ -63,10 +73,9 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
 
     public async Task LoadAsync(CancellationToken ct)
     {
-        var cameras = await _directory.ListAsync(ct).ConfigureAwait(true);
-        Cameras.Clear();
-        foreach (var camera in cameras)
-            Cameras.Add(new CameraRowViewModel(camera, _directory, _logger));
+        _allCameras = await _directory.ListAsync(ct).ConfigureAwait(true);
+        await ReloadGroupsAsync(ct).ConfigureAwait(true);
+        RefilterCameras();
         IsLoaded = true;
 
         // First-run welcome — only the very first time the library opens
@@ -144,6 +153,47 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
 
     [RelayCommand]
     private Task RefreshAsync() => LoadAsync(CancellationToken.None);
+
+    private async Task ReloadGroupsAsync(CancellationToken ct)
+    {
+        var groups = await _directory.ListGroupsAsync(ct).ConfigureAwait(true);
+        // Preserve the current selection's Id across reloads (record identity
+        // changes when we re-query the DB).
+        var prevId = SelectedGroupFilter?.Id;
+        AvailableGroups.Clear();
+        AvailableGroups.Add(null); // "All groups"
+        foreach (var g in groups) AvailableGroups.Add(g);
+
+        if (prevId is { } id)
+        {
+            foreach (var g in AvailableGroups)
+                if (g is not null && g.Id.Equals(id)) { SelectedGroupFilter = g; return; }
+        }
+        SelectedGroupFilter = null;
+    }
+
+    private void RefilterCameras()
+    {
+        var filtered = SelectedGroupFilter is null
+            ? _allCameras
+            : (System.Collections.Generic.IReadOnlyList<Camera>)
+                System.Linq.Enumerable.ToList(
+                    System.Linq.Enumerable.Where(_allCameras, c => c.GroupId.Equals(SelectedGroupFilter.Id)));
+
+        Cameras.Clear();
+        foreach (var camera in filtered)
+            Cameras.Add(new CameraRowViewModel(camera, _directory, _logger));
+    }
+
+    [RelayCommand]
+    private async Task ManageGroupsAsync()
+    {
+        var vm = _manageGroupsFactory.Create();
+        await _dialogs.ShowManageGroupsAsync(vm).ConfigureAwait(true);
+        // After the dialog closes, refresh both lists — groups may have been
+        // added/renamed/removed; cameras' GroupId might have been orphaned.
+        await LoadAsync(CancellationToken.None).ConfigureAwait(true);
+    }
 
     [RelayCommand]
     private void OpenCamera(CameraRowViewModel? row)

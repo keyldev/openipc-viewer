@@ -67,6 +67,14 @@ public sealed class DialogService : IDialogService
         return first?.TryGetLocalPath();
     }
 
+    public async Task ShowManageGroupsAsync(ManageGroupsViewModel viewModel)
+    {
+        var owner = ResolveOwner();
+        if (owner is null) return;
+        var dlg = new ManageGroupsDialog { DataContext = viewModel };
+        await dlg.ShowDialog(owner);
+    }
+
     private static Window? ResolveOwner() =>
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 }

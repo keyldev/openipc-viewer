@@ -14,4 +14,6 @@ public interface IDialogService
     Task<WelcomeResult> ShowWelcomeAsync();
 
     Task<string?> PickFolderAsync(string? title = null);
+
+    Task ShowManageGroupsAsync(ManageGroupsViewModel viewModel);
 }

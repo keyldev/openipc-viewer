@@ -81,6 +81,9 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
     private void OpenAppDataDirectory() => OpenInShell(_fs.AppDataDir.FullName);
 
     [RelayCommand]
+    private void OpenRecordingsDirectory() => OpenInShell(_fs.RecordingsDir.FullName);
+
+    [RelayCommand]
     private void OpenRepository() => OpenInShell(RepositoryUrl);
 
     private static void OpenInShell(string target)

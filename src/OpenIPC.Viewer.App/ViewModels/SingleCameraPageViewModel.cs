@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App.Messages;
+using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.Core.Entities;
 using OpenIPC.Viewer.Core.Majestic;
 using OpenIPC.Viewer.Core.Onvif;
@@ -27,6 +28,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     private readonly IMajesticClient _majestic;
     private readonly RecordingService _recordings;
     private readonly IFileSystem _fs;
+    private readonly UserSettingsService _userSettings;
     private readonly ILogger<SingleCameraPageViewModel> _logger;
     private Camera _camera;
     private DispatcherTimer? _recTimer;
@@ -107,6 +109,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         IMajesticClient majestic,
         RecordingService recordings,
         IFileSystem fs,
+        UserSettingsService userSettings,
         ILogger<SingleCameraPageViewModel> logger)
     {
         _camera = camera;
@@ -116,11 +119,30 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         _majestic = majestic;
         _recordings = recordings;
         _fs = fs;
+        _userSettings = userSettings;
         _logger = logger;
 
         IsRecording = _recordings.IsRecording(_camera.Id);
         _recordings.StateChanged += OnRecordingsStateChanged;
         if (IsRecording) StartRecTimer();
+
+        // Telemetry overlay visibility is a user pref — re-raise PropertyChanged
+        // when the Settings page toggles it so the badges hide/show live.
+        _userSettings.Changed += OnUserSettingsChanged;
+    }
+
+    // Combined visibility — both the user setting is on AND the session has
+    // emitted at least one telemetry tick. Re-raised by both the Telemetry
+    // property change (CommunityToolkit auto) and OnUserSettingsChanged.
+    public bool ShowTelemetryBadges =>
+        Telemetry is not null && _userSettings.Current.ShowTelemetryOverlay;
+
+    partial void OnTelemetryChanged(SessionTelemetry? value)
+        => OnPropertyChanged(nameof(ShowTelemetryBadges));
+
+    private void OnUserSettingsChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(ShowTelemetryBadges)));
     }
 
     private void OnRecordingsStateChanged(object? sender, CameraId cam)
@@ -215,7 +237,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
             return;
 
         var creds = await _directory.GetCredentialsAsync(_camera.Id, ct).ConfigureAwait(true);
-        var options = VideoSessionOptions.Default(_camera.RtspMainUri, creds);
+        var options = VideoSessionOptions.Default(_camera.RtspMainUri, creds)
+            with { Transport = ParseTransport(_userSettings.Current.RtspTransport) };
 
         try
         {
@@ -533,4 +556,10 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         }
         return new string(chars);
     }
+
+    private static RtspTransport ParseTransport(string? s) => s?.ToLowerInvariant() switch
+    {
+        "udp" => RtspTransport.Udp,
+        _ => RtspTransport.Tcp,
+    };
 }

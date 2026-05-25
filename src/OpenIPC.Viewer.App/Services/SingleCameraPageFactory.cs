@@ -18,6 +18,7 @@ public sealed class SingleCameraPageFactory
     private readonly IMajesticClient _majestic;
     private readonly RecordingService _recordings;
     private readonly IFileSystem _fs;
+    private readonly UserSettingsService _userSettings;
     private readonly ILoggerFactory _loggerFactory;
 
     public SingleCameraPageFactory(
@@ -27,6 +28,7 @@ public sealed class SingleCameraPageFactory
         IMajesticClient majestic,
         RecordingService recordings,
         IFileSystem fs,
+        UserSettingsService userSettings,
         ILoggerFactory loggerFactory)
     {
         _coordinator = coordinator;
@@ -35,9 +37,10 @@ public sealed class SingleCameraPageFactory
         _majestic = majestic;
         _recordings = recordings;
         _fs = fs;
+        _userSettings = userSettings;
         _loggerFactory = loggerFactory;
     }
 
     public SingleCameraPageViewModel Create(Camera camera) =>
-        new(camera, _coordinator, _directory, _onvif, _majestic, _recordings, _fs, _loggerFactory.CreateLogger<SingleCameraPageViewModel>());
+        new(camera, _coordinator, _directory, _onvif, _majestic, _recordings, _fs, _userSettings, _loggerFactory.CreateLogger<SingleCameraPageViewModel>());
 }

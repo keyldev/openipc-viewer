@@ -59,7 +59,16 @@
                    Background="{StaticResource Bg2Brush}"
                    Foreground="{StaticResource TextSecondaryBrush}"
                    BorderBrush="{StaticResource BorderWeakBrush}" />
-          <TextBlock Text="Path picker comes in 11b; rooted in IFileSystem.RecordingsDir for now."
+          <Button Content="Open recordings folder"
+                  Command="{Binding OpenRecordingsDirectoryCommand}"
+                  Background="Transparent"
+                  BorderBrush="{StaticResource BorderMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="12,6"
+                  Foreground="{StaticResource TextPrimaryBrush}"
+                  HorizontalAlignment="Left" />
+          <TextBlock Text="Custom path picker comes in 11c."
                      FontSize="{StaticResource FontSizeSm}"
                      Foreground="{StaticResource TextTertiaryBrush}" />
         </StackPanel>

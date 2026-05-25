@@ -60,7 +60,7 @@
               Background="#80000000"
               CornerRadius="3"
               Padding="6,2"
-              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+              IsVisible="{Binding ShowTelemetryBadges}">
         <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
           <Run Text="{Binding Telemetry.Width}" /><Run Text="x" /><Run Text="{Binding Telemetry.Height}" /><Run Text=" " /><Run Text="{Binding Telemetry.Codec}" />
         </TextBlock>
@@ -71,7 +71,7 @@
               Background="#80000000"
               CornerRadius="3"
               Padding="6,2"
-              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+              IsVisible="{Binding ShowTelemetryBadges}">
         <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
           <Run Text="{Binding Telemetry.Fps, StringFormat={}{0:F0} fps}" />
         </TextBlock>
@@ -82,7 +82,7 @@
               Background="#80000000"
               CornerRadius="3"
               Padding="6,2"
-              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+              IsVisible="{Binding ShowTelemetryBadges}">
         <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
           <Run Text="{Binding Telemetry.FramesDecoded}" /><Run Text=" frames" />
         </TextBlock>

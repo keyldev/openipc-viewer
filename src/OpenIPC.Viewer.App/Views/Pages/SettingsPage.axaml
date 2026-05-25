@@ -1,20 +1,38 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
              x:Class="OpenIPC.Viewer.App.Views.Pages.SettingsPage"
              x:DataType="vm:SettingsPageViewModel">
 
   <ScrollViewer>
     <StackPanel Spacing="24" Margin="0,0,8,24" VerticalAlignment="Top">
 
-      <TextBlock Text="{Binding Title}"
+      <TextBlock Text="{Binding [Settings.Title], Source={x:Static svc:Localizer.Instance}}"
                  FontSize="{StaticResource FontSizeXl}"
                  FontWeight="SemiBold"
                  Foreground="{StaticResource TextPrimaryBrush}" />
 
+      <!-- Appearance -->
+      <StackPanel Spacing="12">
+        <TextBlock Text="{Binding [Settings.Appearance], Source={x:Static svc:Localizer.Instance}}"
+                   FontSize="{StaticResource FontSizeMd}"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{Binding [Settings.Appearance.Language], Source={x:Static svc:Localizer.Instance}}"
+                     VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+          <ComboBox ItemsSource="{Binding LanguageOptions}"
+                    SelectedItem="{Binding Language, Mode=TwoWay}"
+                    MinWidth="120" />
+        </StackPanel>
+      </StackPanel>
+
       <!-- Video -->
       <StackPanel Spacing="12">
-        <TextBlock Text="Video"
+        <TextBlock Text="{Binding [Settings.Video], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeMd}"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}" />
@@ -44,7 +62,7 @@
 
       <!-- Recording -->
       <StackPanel Spacing="12">
-        <TextBlock Text="Recording"
+        <TextBlock Text="{Binding [Settings.Recording], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeMd}"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}" />
@@ -91,7 +109,7 @@
 
       <!-- Discovery -->
       <StackPanel Spacing="12">
-        <TextBlock Text="Discovery"
+        <TextBlock Text="{Binding [Settings.Discovery], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeMd}"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}" />
@@ -103,7 +121,7 @@
 
       <!-- Advanced -->
       <StackPanel Spacing="12">
-        <TextBlock Text="Advanced"
+        <TextBlock Text="{Binding [Settings.Advanced], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeMd}"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}" />
@@ -130,7 +148,7 @@
 
       <!-- About -->
       <StackPanel Spacing="12">
-        <TextBlock Text="About"
+        <TextBlock Text="{Binding [Settings.About], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeMd}"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}" />

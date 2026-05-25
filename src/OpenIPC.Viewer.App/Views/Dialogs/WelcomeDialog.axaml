@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="using:OpenIPC.Viewer.App.Services"
         x:Class="OpenIPC.Viewer.App.Views.Dialogs.WelcomeDialog"
-        Title="Welcome to OpenIPC Viewer"
+        Title="{Binding [Welcome.WindowTitle], Source={x:Static svc:Localizer.Instance}}"
         Width="480" Height="360"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -15,21 +16,21 @@
     <StackPanel Orientation="Horizontal" Spacing="12">
       <Image Source="/Assets/openipc-logo.png" Width="40" Height="40" />
       <StackPanel VerticalAlignment="Center">
-        <TextBlock Text="OpenIPC Viewer"
+        <TextBlock Text="{Binding [Welcome.Title], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeLg}"
                    FontWeight="SemiBold" />
-        <TextBlock Text="Cross-platform viewer for OpenIPC IP cameras"
+        <TextBlock Text="{Binding [Welcome.Tagline], Source={x:Static svc:Localizer.Instance}}"
                    FontSize="{StaticResource FontSizeSm}"
                    Foreground="{StaticResource TextSecondaryBrush}" />
       </StackPanel>
     </StackPanel>
 
-    <TextBlock Text="Add your first camera to get started."
+    <TextBlock Text="{Binding [Welcome.Lead], Source={x:Static svc:Localizer.Instance}}"
                Foreground="{StaticResource TextSecondaryBrush}"
                Margin="0,8,0,0" />
 
     <Button Name="DiscoverButton"
-            Content="Scan local network (WS-Discovery)"
+            Content="{Binding [Welcome.Discover], Source={x:Static svc:Localizer.Instance}}"
             HorizontalAlignment="Stretch"
             HorizontalContentAlignment="Left"
             Padding="14,12"
@@ -38,7 +39,7 @@
             CornerRadius="8" />
 
     <Button Name="AddManuallyButton"
-            Content="Add manually (host + RTSP path)"
+            Content="{Binding [Welcome.AddManually], Source={x:Static svc:Localizer.Instance}}"
             HorizontalAlignment="Stretch"
             HorizontalContentAlignment="Left"
             Padding="14,12"
@@ -48,7 +49,7 @@
             CornerRadius="8" />
 
     <Button Name="SkipButton"
-            Content="Skip — I'll add later"
+            Content="{Binding [Welcome.Skip], Source={x:Static svc:Localizer.Instance}}"
             HorizontalAlignment="Stretch"
             HorizontalContentAlignment="Left"
             Padding="14,12"

@@ -23,6 +23,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty] private bool _autoScanLanOnStartup;
     [ObservableProperty] private int _maxConcurrentGridSessions;
     [ObservableProperty] private string _rtspTransport = "tcp";
+    [ObservableProperty] private string _language = "system";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(EffectiveRecordingsDirectory))]
@@ -38,6 +39,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
 
     public int[] GridSessionOptions { get; } = new[] { 4, 9, 16, 25 };
     public string[] TransportOptions { get; } = new[] { "tcp", "udp" };
+    public string[] LanguageOptions { get; } = new[] { "system", "en", "ru" };
 
     public string AppDataDirectory => _fs.AppDataDir.FullName;
     public string Version => Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.1.0";
@@ -66,6 +68,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
             MaxConcurrentGridSessions = s.MaxConcurrentGridSessions;
             RtspTransport = s.RtspTransport;
             RecordingsDirOverride = s.RecordingsDirOverride;
+            Language = s.Language;
         }
         finally { _suppressSave = false; }
     }
@@ -76,6 +79,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
     partial void OnMaxConcurrentGridSessionsChanged(int value) => Persist();
     partial void OnRtspTransportChanged(string value) => Persist();
     partial void OnRecordingsDirOverrideChanged(string value) => Persist();
+    partial void OnLanguageChanged(string value) => Persist();
 
     private void Persist()
     {
@@ -88,6 +92,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
             MaxConcurrentGridSessions = MaxConcurrentGridSessions,
             RtspTransport = RtspTransport,
             RecordingsDirOverride = RecordingsDirOverride,
+            Language = Language,
         };
         // Fire-and-forget; binding setters are synchronous and any save
         // error is logged inside UpdateAsync.

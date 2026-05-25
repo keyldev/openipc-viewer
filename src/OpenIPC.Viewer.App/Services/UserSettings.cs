@@ -12,6 +12,8 @@ public sealed record UserSettings(
     int MaxConcurrentGridSessions = 9,
     string RtspTransport = "tcp",
     string RecordingsDirOverride = "",
+    // "system" follows CurrentUICulture; "en"/"ru" force a specific locale.
+    string Language = "system",
     bool WelcomeShown = false)
 {
     public static UserSettings Default => new();

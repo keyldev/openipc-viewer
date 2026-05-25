@@ -54,9 +54,9 @@ internal static class Composition
         return provider;
     }
 
-    // Bridges UserSettingsService → LoggingLevelSwitch without dragging the
-    // Serilog dep into the App project. Applies the saved verbose flag once
-    // on startup, then re-applies on every Changed event.
+    // Bridges UserSettingsService → LoggingLevelSwitch + Localizer without
+    // dragging Serilog into the App project. Applies on startup, re-applies
+    // on every Changed event so the Settings page toggles take effect live.
     private static void HookUserSettingsToLogLevel(IServiceProvider sp, Serilog.Core.LoggingLevelSwitch levelSwitch)
     {
         var settings = sp.GetRequiredService<UserSettingsService>();
@@ -65,10 +65,18 @@ internal static class Composition
             levelSwitch.MinimumLevel = settings.Current.VerboseLogging
                 ? Serilog.Events.LogEventLevel.Debug
                 : Serilog.Events.LogEventLevel.Information;
+            Localizer.Instance.SetLanguage(ParseLang(settings.Current.Language));
         }
         Apply();
         settings.Changed += (_, _) => Apply();
     }
+
+    private static LangCode ParseLang(string? code) => code?.ToLowerInvariant() switch
+    {
+        "en" => LangCode.English,
+        "ru" => LangCode.Russian,
+        _ => LangCode.System,
+    };
 
     private static void AddPlatformServices(IServiceCollection services)
     {

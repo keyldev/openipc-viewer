@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
              xmlns:views="using:OpenIPC.Viewer.App.Views"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
              x:Class="OpenIPC.Viewer.App.Views.MainView"
              x:Name="Root"
              x:DataType="vm:MainWindowViewModel"
@@ -43,7 +44,7 @@
                          CommandParameter="live">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconLive}" Width="16" Height="16" />
-                <TextBlock Text="Live" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding [Nav.Live], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" />
               </StackPanel>
             </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
@@ -52,7 +53,7 @@
                          CommandParameter="library">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconLibrary}" Width="16" Height="16" />
-                <TextBlock Text="Library" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding [Nav.Library], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" />
               </StackPanel>
             </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
@@ -61,7 +62,7 @@
                          CommandParameter="recordings">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconRecordings}" Width="16" Height="16" />
-                <TextBlock Text="Recordings" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding [Nav.Recordings], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" />
               </StackPanel>
             </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
@@ -70,7 +71,7 @@
                          CommandParameter="events">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconEvents}" Width="16" Height="16" />
-                <TextBlock Text="Events" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding [Nav.Events], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" />
               </StackPanel>
             </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
@@ -79,7 +80,7 @@
                          CommandParameter="settings">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" />
-                <TextBlock Text="Settings" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding [Nav.Settings], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" />
               </StackPanel>
             </RadioButton>
           </StackPanel>

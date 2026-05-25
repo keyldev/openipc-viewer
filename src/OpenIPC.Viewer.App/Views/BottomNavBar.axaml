@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
              x:Class="OpenIPC.Viewer.App.Views.BottomNavBar"
              x:DataType="vm:MainWindowViewModel"
              Background="{StaticResource Bg2Brush}">
@@ -17,7 +18,7 @@
                    CommandParameter="live">
         <StackPanel Spacing="3" HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource IconLive}" Width="18" Height="18" HorizontalAlignment="Center" />
-          <TextBlock Text="Live" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding [Nav.Live], Source={x:Static svc:Localizer.Instance}}" HorizontalAlignment="Center" />
         </StackPanel>
       </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
@@ -26,7 +27,7 @@
                    CommandParameter="library">
         <StackPanel Spacing="3" HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource IconLibrary}" Width="18" Height="18" HorizontalAlignment="Center" />
-          <TextBlock Text="Library" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding [Nav.Library], Source={x:Static svc:Localizer.Instance}}" HorizontalAlignment="Center" />
         </StackPanel>
       </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
@@ -35,7 +36,7 @@
                    CommandParameter="recordings">
         <StackPanel Spacing="3" HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource IconRecordings}" Width="18" Height="18" HorizontalAlignment="Center" />
-          <TextBlock Text="Records" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding [Nav.RecordingsShort], Source={x:Static svc:Localizer.Instance}}" HorizontalAlignment="Center" />
         </StackPanel>
       </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
@@ -44,7 +45,7 @@
                    CommandParameter="events">
         <StackPanel Spacing="3" HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource IconEvents}" Width="18" Height="18" HorizontalAlignment="Center" />
-          <TextBlock Text="Events" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding [Nav.Events], Source={x:Static svc:Localizer.Instance}}" HorizontalAlignment="Center" />
         </StackPanel>
       </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
@@ -53,7 +54,7 @@
                    CommandParameter="settings">
         <StackPanel Spacing="3" HorizontalAlignment="Center">
           <PathIcon Data="{StaticResource IconSettings}" Width="18" Height="18" HorizontalAlignment="Center" />
-          <TextBlock Text="Settings" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding [Nav.Settings], Source={x:Static svc:Localizer.Instance}}" HorizontalAlignment="Center" />
         </StackPanel>
       </RadioButton>
 

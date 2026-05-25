@@ -65,10 +65,18 @@ internal static class Composition
             levelSwitch.MinimumLevel = settings.Current.VerboseLogging
                 ? Serilog.Events.LogEventLevel.Debug
                 : Serilog.Events.LogEventLevel.Information;
+            Localizer.Instance.SetLanguage(ParseLang(settings.Current.Language));
         }
         Apply();
         settings.Changed += (_, _) => Apply();
     }
+
+    private static LangCode ParseLang(string? code) => code?.ToLowerInvariant() switch
+    {
+        "en" => LangCode.English,
+        "ru" => LangCode.Russian,
+        _ => LangCode.System,
+    };
 
     private static IConfiguration BuildConfiguration()
     {

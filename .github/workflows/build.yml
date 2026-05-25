@@ -79,8 +79,44 @@ jobs:
           path: openipc-viewer-${{ matrix.rid }}.*
           if-no-files-found: error
 
+  android:
+    runs-on: ubuntu-latest
+    name: build (android)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install android workload
+        run: dotnet workload install android
+
+      - name: Restore
+        run: dotnet restore src/OpenIPC.Viewer.Android/OpenIPC.Viewer.Android.csproj
+
+      - name: Build (Release, warnings as errors)
+        run: dotnet build src/OpenIPC.Viewer.Android/OpenIPC.Viewer.Android.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Publish APK (android-arm64)
+        run: dotnet publish src/OpenIPC.Viewer.Android/OpenIPC.Viewer.Android.csproj -c Release -f net10.0-android -r android-arm64 -o publish/android-arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openipc-viewer-android-arm64
+          path: publish/android-arm64/*-Signed.apk
+          if-no-files-found: error
+
   release:
-    needs: build
+    needs: [build, android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:

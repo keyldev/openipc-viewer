@@ -10,23 +10,28 @@ namespace OpenIPC.Viewer.App;
 
 public sealed class App : Application
 {
-    private readonly IServiceProvider? _services;
-
-    public App() { }
-
-    public App(IServiceProvider services)
-    {
-        _services = services;
-    }
+    // Set by the platform host (Desktop's Program.Main or Android's MainActivity)
+    // before Avalonia hits OnFrameworkInitializationCompleted. A static slot is
+    // the only way to thread IoC across the parameterless ctor that
+    // AvaloniaMainActivity<App> requires on Android.
+    public static IServiceProvider? Services { get; set; }
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && _services is not null)
+        if (Services is not null)
         {
-            var vm = _services.GetRequiredService<MainWindowViewModel>();
-            desktop.MainWindow = new MainWindow { DataContext = vm };
+            var vm = Services.GetRequiredService<MainWindowViewModel>();
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = new MainWindow { DataContext = vm };
+            }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+            {
+                singleView.MainView = new MainView { DataContext = vm };
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

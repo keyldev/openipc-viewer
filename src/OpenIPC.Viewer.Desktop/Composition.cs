@@ -4,25 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
-using OpenIPC.Viewer.App.Services;
-using OpenIPC.Viewer.App.ViewModels;
-using OpenIPC.Viewer.Core.Events;
-using OpenIPC.Viewer.Core.Majestic;
-using OpenIPC.Viewer.Core.Onvif;
-using OpenIPC.Viewer.Core.Onvif.Discovery;
-using OpenIPC.Viewer.Core.Persistence;
+using OpenIPC.Viewer.Composition;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Recording;
-using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
-using OpenIPC.Viewer.Devices.Majestic;
-using OpenIPC.Viewer.Devices.Onvif;
-using OpenIPC.Viewer.Devices.Onvif.Discovery;
-using OpenIPC.Viewer.Video.Recording;
-using OpenIPC.Viewer.Infrastructure.Persistence;
 using OpenIPC.Viewer.Infrastructure.Secrets;
 using OpenIPC.Viewer.Infrastructure.Video.Decoders;
-using OpenIPC.Viewer.Video;
+using OpenIPC.Viewer.Video.Recording;
 using Serilog;
 
 namespace OpenIPC.Viewer.Desktop;
@@ -44,6 +32,25 @@ internal static class Composition
             b.AddSerilog(serilog, dispose: true);
         });
 
+        AddPlatformServices(services);
+
+        // Recording backend — ffmpeg subprocess works on all three desktop OSes
+        // (resolves bundled binary or system PATH per FfmpegSubprocessRecorder).
+        services.AddSingleton<IRecorder>(sp =>
+        {
+            var cfg = sp.GetRequiredService<IConfiguration>();
+            return new FfmpegSubprocessRecorder(
+                sp.GetRequiredService<ILoggerFactory>(),
+                cfg["Recording:FfmpegPath"]);
+        });
+
+        services.AddSharedServices();
+
+        return services.BuildServiceProvider(validateScopes: true);
+    }
+
+    private static void AddPlatformServices(IServiceCollection services)
+    {
         // Platform — one trio of IFileSystem / ISecretsStore / IHwDecoderFactory
         // per OS. Selection happens once at startup; downstream services see a
         // single registration each. The IsX checks inside each factory lambda
@@ -85,69 +92,6 @@ internal static class Composition
         {
             throw new PlatformNotSupportedException();
         }
-
-        // Persistence
-        services.AddSingleton<IDbConnectionFactory>(sp =>
-        {
-            var fs = sp.GetRequiredService<IFileSystem>();
-            return new SqliteConnectionFactory(Path.Combine(fs.AppDataDir.FullName, "openipc-viewer.db"));
-        });
-        services.AddSingleton<IMigrationRunner, MigrationRunner>();
-        services.AddSingleton<ICameraRepository, SqliteCameraRepository>();
-        services.AddSingleton<IGroupRepository, SqliteGroupRepository>();
-        services.AddSingleton<IRecordingRepository, SqliteRecordingRepository>();
-        services.AddSingleton<IEventRepository, SqliteEventRepository>();
-
-        // Domain services
-        services.AddSingleton<CameraDirectoryService>();
-
-        // Video
-        services.AddSingleton<IVideoEngine, FfmpegVideoEngine>();
-        services.AddSingleton<LiveStreamCoordinator>();
-
-        // ONVIF (Phase 4a). Client is stateless — singleton is fine.
-        services.AddSingleton<IOnvifClient, OnvifCoreClient>();
-        services.AddSingleton<OnvifProbeService>();
-
-        // ONVIF discovery (Phase 4b). WS-Discovery only; mDNS is deferred.
-        services.AddSingleton<IDiscoveryService, WsDiscoveryService>();
-
-        // Majestic HTTP API (Phase 5). Single shared HttpClient inside —
-        // safe because creds are attached per-request.
-        services.AddSingleton<IMajesticClient, MajesticHttpClient>();
-
-        // Recording (Phase 6). ffmpeg subprocess; one IRecordingSession per camera.
-        // Path resolves bundled → "ffmpeg" on PATH; user can pin via appsettings.
-        services.AddSingleton<IRecorder>(sp =>
-        {
-            var cfg = sp.GetRequiredService<IConfiguration>();
-            return new FfmpegSubprocessRecorder(sp.GetRequiredService<ILoggerFactory>(), cfg["Recording:FfmpegPath"]);
-        });
-        services.AddSingleton<RecordingService>();
-
-        // Events (Phase 7). Real per-protocol sources land later; ManualMotionEventSource
-        // is the only registered source for now so the ingestion path can be exercised
-        // end-to-end via the "Simulate motion" button on the Events page.
-        services.AddSingleton<ManualMotionEventSource>();
-        services.AddSingleton<IMotionEventSource>(sp => sp.GetRequiredService<ManualMotionEventSource>());
-        services.AddSingleton<EventIngestionService>();
-
-        // UI services
-        services.AddSingleton<IDialogService, DialogService>();
-        services.AddSingleton<SingleCameraPageFactory>();
-        services.AddSingleton<CameraEditorFactory>();
-        services.AddSingleton<DiscoveryDialogFactory>();
-
-        // ViewModels — singletons so navigation preserves their state across
-        // sidebar switches and so messenger registrations stay alive.
-        services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<GridPageViewModel>();
-        services.AddSingleton<CameraLibraryPageViewModel>();
-        services.AddSingleton<RecordingsPageViewModel>();
-        services.AddSingleton<EventsPageViewModel>();
-        services.AddSingleton<SettingsPageViewModel>();
-
-        return services.BuildServiceProvider(validateScopes: true);
     }
 
     private static IConfiguration BuildConfiguration()

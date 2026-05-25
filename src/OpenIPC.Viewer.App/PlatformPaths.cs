@@ -13,8 +13,13 @@ public static class PlatformPaths
 
     public static DirectoryInfo ResolveAppData()
     {
+        // Order matters: OperatingSystem.IsLinux() returns true on Android too
+        // (Android's kernel is Linux). Check Android first so it doesn't fall
+        // into the desktop-Linux XDG branch.
         var path = OperatingSystem.IsWindows() ? WindowsAppData()
                  : OperatingSystem.IsMacOS()   ? MacOsAppData()
+                 : OperatingSystem.IsAndroid() ? AndroidAppData()
+                 : OperatingSystem.IsIOS()     ? IosAppData()
                  : OperatingSystem.IsLinux()   ? LinuxAppData()
                  : throw new PlatformNotSupportedException();
         return EnsureDir(path);
@@ -47,5 +52,19 @@ public static class PlatformPaths
             dataHome = Path.Combine(home, ".local", "share");
         }
         return Path.Combine(dataHome, XdgFolderName);
+    }
+
+    private static string AndroidAppData()
+    {
+        // .NET on Android maps SpecialFolder.LocalApplicationData to
+        // context.FilesDir, which is already per-package — no extra subfolder.
+        return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    }
+
+    private static string IosAppData()
+    {
+        // SpecialFolder.LocalApplicationData on iOS → ~/Library/Application Support
+        // inside the app sandbox; already per-package.
+        return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
     }
 }

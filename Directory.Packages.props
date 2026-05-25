@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="12.0.3" />
     <PackageVersion Include="Avalonia.Desktop" Version="12.0.3" />
+    <PackageVersion Include="Avalonia.Android" Version="12.0.3" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.0.3" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.0.3" />
     <!-- Avalonia.Diagnostics is still on 11.3.x; re-add once a 12.x build ships. -->
@@ -28,6 +29,10 @@
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="9.0.0" />
     <PackageVersion Include="Dapper" Version="2.1.79" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <!-- Pin: transitive pull (Onvif.Core → System.ServiceModel) lands 9.0.1
+         which carries GHSA-37gx-xxp4-5rgx + GHSA-w3x6-4m5h-cxqf; 9.0.x line
+         hasn't shipped a patched servicing yet, so pin to the 10.0.0 release. -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.0" />
 
     <PackageVersion Include="FFmpeg.AutoGen" Version="7.1.1" />
 

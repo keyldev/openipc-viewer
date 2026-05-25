@@ -19,6 +19,7 @@ internal static class Program
 #endif
 
         var services = Composition.Build();
+        App.App.Services = services;
 
         var logger = services.GetRequiredService<ILogger<App.App>>();
         logger.LogInformation(
@@ -37,7 +38,7 @@ internal static class Program
                 .StartAsync(CancellationToken.None)
                 .GetAwaiter().GetResult();
 
-            return BuildAvaloniaApp(services)
+            return BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
         catch (Exception ex)
@@ -56,9 +57,9 @@ internal static class Program
         }
     }
 
-    private static AppBuilder BuildAvaloniaApp(IServiceProvider services) =>
+    private static AppBuilder BuildAvaloniaApp() =>
         AppBuilder
-            .Configure(() => new App.App(services))
+            .Configure<App.App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace(Avalonia.Logging.LogEventLevel.Warning);

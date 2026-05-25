@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenIPC.Viewer.App\OpenIPC.Viewer.App.csproj" />
+    <ProjectReference Include="..\OpenIPC.Viewer.Composition\OpenIPC.Viewer.Composition.csproj" />
     <ProjectReference Include="..\OpenIPC.Viewer.Infrastructure\OpenIPC.Viewer.Infrastructure.csproj" />
     <ProjectReference Include="..\OpenIPC.Viewer.Video\OpenIPC.Viewer.Video.csproj" />
     <ProjectReference Include="..\OpenIPC.Viewer.Devices\OpenIPC.Viewer.Devices.csproj" />

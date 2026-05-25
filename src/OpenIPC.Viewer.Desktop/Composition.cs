@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels;
+using OpenIPC.Viewer.Core.Onvif;
 using OpenIPC.Viewer.Core.Persistence;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
+using OpenIPC.Viewer.Devices.Onvif;
 using OpenIPC.Viewer.Infrastructure.Persistence;
 using OpenIPC.Viewer.Infrastructure.Secrets;
 using OpenIPC.Viewer.Video;
@@ -60,6 +62,10 @@ internal static class Composition
         // Video
         services.AddSingleton<IVideoEngine, FfmpegVideoEngine>();
         services.AddSingleton<LiveStreamCoordinator>();
+
+        // ONVIF (Phase 4a). Client is stateless — singleton is fine.
+        services.AddSingleton<IOnvifClient, OnvifCoreClient>();
+        services.AddSingleton<OnvifProbeService>();
 
         // UI services
         services.AddSingleton<IDialogService, DialogService>();

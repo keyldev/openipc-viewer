@@ -6,12 +6,14 @@ using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels;
+using OpenIPC.Viewer.Core.Majestic;
 using OpenIPC.Viewer.Core.Onvif;
 using OpenIPC.Viewer.Core.Onvif.Discovery;
 using OpenIPC.Viewer.Core.Persistence;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
+using OpenIPC.Viewer.Devices.Majestic;
 using OpenIPC.Viewer.Devices.Onvif;
 using OpenIPC.Viewer.Devices.Onvif.Discovery;
 using OpenIPC.Viewer.Infrastructure.Persistence;
@@ -71,6 +73,10 @@ internal static class Composition
 
         // ONVIF discovery (Phase 4b). WS-Discovery only; mDNS is deferred.
         services.AddSingleton<IDiscoveryService, WsDiscoveryService>();
+
+        // Majestic HTTP API (Phase 5). Single shared HttpClient inside —
+        // safe because creds are attached per-request.
+        services.AddSingleton<IMajesticClient, MajesticHttpClient>();
 
         // UI services
         services.AddSingleton<IDialogService, DialogService>();

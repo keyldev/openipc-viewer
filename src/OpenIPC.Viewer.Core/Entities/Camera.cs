@@ -19,6 +19,7 @@ public sealed record Camera(
     string? FirmwareVersion,
     bool IncludedInGrid,
     bool HasPtz,
+    bool IsMajestic,
     int SortOrder,
     DateTime CreatedAt,
     DateTime UpdatedAt);

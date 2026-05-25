@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App.Messages;
 using OpenIPC.Viewer.Core.Entities;
+using OpenIPC.Viewer.Core.Majestic;
 using OpenIPC.Viewer.Core.Onvif;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
@@ -21,9 +22,10 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     private readonly LiveStreamCoordinator _coordinator;
     private readonly CameraDirectoryService _directory;
     private readonly IOnvifClient _onvif;
+    private readonly IMajesticClient _majestic;
     private readonly IFileSystem _fs;
     private readonly ILogger<SingleCameraPageViewModel> _logger;
-    private readonly Camera _camera;
+    private Camera _camera;
 
     private readonly StreamQuality _quality = StreamQuality.Main;
     private IDisposable? _stateSub;
@@ -37,7 +39,18 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     [ObservableProperty] private PtzController? _ptz;
     [ObservableProperty] private string _newPresetName = "";
 
+    // Majestic state. IsMajestic gates the whole config panel; MajesticConfig
+    // is null until first GetConfigAsync completes.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMajestic))]
+    private bool _majesticReady;
+    [ObservableProperty] private MajesticConfig? _majesticConfig;
+    [ObservableProperty] private MajesticInfo? _majesticInfo;
+    [ObservableProperty] private NightMode _currentNightMode = NightMode.Unknown;
+    [ObservableProperty] private string? _majesticError;
+
     public bool HasPtz => _camera.HasPtz && !string.IsNullOrEmpty(_camera.OnvifProfileToken);
+    public bool IsMajestic => MajesticReady;
     public ObservableCollection<PtzPreset> Presets { get; } = new();
 
     public string CameraName => _camera.Name;
@@ -48,6 +61,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         LiveStreamCoordinator coordinator,
         CameraDirectoryService directory,
         IOnvifClient onvif,
+        IMajesticClient majestic,
         IFileSystem fs,
         ILogger<SingleCameraPageViewModel> logger)
     {
@@ -55,6 +69,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         _coordinator = coordinator;
         _directory = directory;
         _onvif = onvif;
+        _majestic = majestic;
         _fs = fs;
         _logger = logger;
     }
@@ -91,6 +106,85 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
 
         if (HasPtz)
             await InitPtzAsync(creds, ct).ConfigureAwait(true);
+
+        await InitMajesticAsync(creds, ct).ConfigureAwait(true);
+    }
+
+    private async Task InitMajesticAsync(CameraCredentials? creds, CancellationToken ct)
+    {
+        var endpoint = new MajesticEndpoint(_camera.Host, _camera.HttpPort, creds);
+
+        // Trust the persisted flag if set; otherwise probe and persist on success.
+        bool reachable = _camera.IsMajestic;
+        if (!reachable)
+        {
+            try
+            {
+                reachable = await _majestic.PingAsync(endpoint, ct).ConfigureAwait(true);
+                if (reachable)
+                {
+                    await _directory.SetIsMajesticAsync(_camera.Id, true, CancellationToken.None).ConfigureAwait(true);
+                    _camera = _camera with { IsMajestic = true };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Majestic ping threw for {CameraId}", _camera.Id);
+                reachable = false;
+            }
+        }
+
+        if (!reachable) return;
+        MajesticReady = true;
+
+        try
+        {
+            var (cfg, info) = await GetMajesticStateAsync(endpoint, ct).ConfigureAwait(true);
+            MajesticConfig = cfg;
+            MajesticInfo = info;
+            CurrentNightMode = cfg.NightMode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load Majestic config for {CameraId}", _camera.Id);
+            MajesticError = ex.Message;
+        }
+    }
+
+    private async Task<(MajesticConfig config, MajesticInfo info)> GetMajesticStateAsync(MajesticEndpoint ep, CancellationToken ct)
+    {
+        var cfgTask = _majestic.GetConfigAsync(ep, ct);
+        var infoTask = _majestic.GetInfoAsync(ep, ct);
+        await Task.WhenAll(cfgTask, infoTask).ConfigureAwait(false);
+        return (await cfgTask.ConfigureAwait(false), await infoTask.ConfigureAwait(false));
+    }
+
+    [RelayCommand]
+    private async Task SetNightModeAsync(string? modeName)
+    {
+        if (!IsMajestic || modeName is null) return;
+        var mode = modeName switch
+        {
+            "day" => NightMode.Day,
+            "night" => NightMode.Night,
+            "auto" => NightMode.Auto,
+            _ => NightMode.Unknown,
+        };
+        if (mode == NightMode.Unknown) return;
+
+        try
+        {
+            var creds = await _directory.GetCredentialsAsync(_camera.Id, CancellationToken.None).ConfigureAwait(true);
+            var endpoint = new MajesticEndpoint(_camera.Host, _camera.HttpPort, creds);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            await _majestic.SetNightModeAsync(endpoint, mode, cts.Token).ConfigureAwait(true);
+            CurrentNightMode = mode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to set night mode {Mode}", mode);
+            MajesticError = ex.Message;
+        }
     }
 
     private async Task InitPtzAsync(CameraCredentials? creds, CancellationToken ct)
@@ -167,12 +261,23 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     [RelayCommand]
     private async Task SnapshotAsync()
     {
-        if (Session is null)
-            return;
-
         try
         {
-            var bytes = await Session.SnapshotAsync(SnapshotFormat.Jpeg, CancellationToken.None).ConfigureAwait(true);
+            byte[] bytes;
+            if (IsMajestic)
+            {
+                // /image.jpg is ~50–100ms vs ~hundreds of ms decoding a video frame.
+                var creds = await _directory.GetCredentialsAsync(_camera.Id, CancellationToken.None).ConfigureAwait(true);
+                var endpoint = new MajesticEndpoint(_camera.Host, _camera.HttpPort, creds);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                bytes = await _majestic.SnapshotJpegAsync(endpoint, new MajesticSnapshotOptions(), cts.Token).ConfigureAwait(true);
+            }
+            else if (Session is not null)
+            {
+                bytes = await Session.SnapshotAsync(SnapshotFormat.Jpeg, CancellationToken.None).ConfigureAwait(true);
+            }
+            else return;
+
             var dir = Path.Combine(_fs.SnapshotsDir.FullName, SafeFileName(_camera.Name));
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, $"{DateTime.Now:yyyy-MM-dd-HHmmss}.jpg");

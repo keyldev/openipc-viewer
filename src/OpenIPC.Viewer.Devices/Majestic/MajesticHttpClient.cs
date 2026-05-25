@@ -1,0 +1,183 @@
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OpenIPC.Viewer.Core.Majestic;
+
+namespace OpenIPC.Viewer.Devices.Majestic;
+
+// Talks to OpenIPC-Majestic over HTTP. Single HttpClient is reused across
+// cameras; Basic auth is attached per-request from MajesticEndpoint.Credentials
+// (HttpClientHandler.Credentials would lock us into one cred set globally).
+//
+// 5-second timeout per request (phase-05 §5.3). On 401 we surface a typed
+// exception so the UI can ask the user to re-enter credentials instead of
+// silently retrying and racking up failed auth attempts.
+public sealed class MajesticHttpClient : IMajesticClient, IDisposable
+{
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+
+    private readonly HttpClient _http;
+    private readonly ILogger<MajesticHttpClient> _logger;
+
+    public MajesticHttpClient(ILogger<MajesticHttpClient> logger)
+    {
+        _http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            Timeout = RequestTimeout,
+        };
+        _logger = logger;
+    }
+
+    public async Task<bool> PingAsync(MajesticEndpoint endpoint, CancellationToken ct)
+    {
+        try
+        {
+            using var resp = await SendAsync(endpoint, HttpMethod.Get, "api/v1/info.json", ct).ConfigureAwait(false);
+            if (!resp.IsSuccessStatusCode) return false;
+            var body = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            // Cheap content-shape sniff: not JSON → not Majestic.
+            return body.TrimStart().StartsWith('{');
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Majestic ping failed for {Host}", endpoint.Host);
+            return false;
+        }
+    }
+
+    public async Task<MajesticConfig> GetConfigAsync(MajesticEndpoint endpoint, CancellationToken ct)
+    {
+        using var resp = await SendAsync(endpoint, HttpMethod.Get, "api/v1/config.json", ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+        var rawJson = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        using var doc = JsonDocument.Parse(rawJson);
+        return ParseConfig(rawJson, doc.RootElement);
+    }
+
+    public async Task<MajesticInfo> GetInfoAsync(MajesticEndpoint endpoint, CancellationToken ct)
+    {
+        using var resp = await SendAsync(endpoint, HttpMethod.Get, "api/v1/info.json", ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+        await using var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+        var root = doc.RootElement;
+        return new MajesticInfo(
+            Model: TryGetString(root, "model"),
+            FirmwareVersion: TryGetString(root, "firmware") ?? TryGetString(root, "build"),
+            ChipModel: TryGetString(root, "chip") ?? TryGetString(root, "soc"),
+            Uptime: TryGetString(root, "uptime"));
+    }
+
+    public async Task SetNightModeAsync(MajesticEndpoint endpoint, NightMode mode, CancellationToken ct)
+    {
+        var path = mode switch
+        {
+            NightMode.Day => "night/off",
+            NightMode.Night => "night/on",
+            NightMode.Auto => "night/auto",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode)),
+        };
+        using var resp = await SendAsync(endpoint, HttpMethod.Get, path, ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+    }
+
+    public async Task<byte[]> SnapshotJpegAsync(MajesticEndpoint endpoint, MajesticSnapshotOptions options, CancellationToken ct)
+    {
+        var path = "image.jpg";
+        if (options.Width is { } w && options.Height is { } h)
+            path = $"image.jpg?width={w}&height={h}";
+        else if (options.Width is { } w2)
+            path = $"image.jpg?width={w2}";
+
+        using var resp = await SendAsync(endpoint, HttpMethod.Get, path, ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(resp, ct).ConfigureAwait(false);
+        return await resp.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task<HttpResponseMessage> SendAsync(MajesticEndpoint ep, HttpMethod method, string relativePath, CancellationToken ct)
+    {
+        var uri = new Uri(ep.BaseUri, relativePath);
+        var req = new HttpRequestMessage(method, uri);
+        if (ep.Credentials is { } c)
+        {
+            var token = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{c.Username}:{c.Password}"));
+            req.Headers.Authorization = new AuthenticationHeaderValue("Basic", token);
+        }
+        return await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+    }
+
+    private static async Task EnsureSuccessAsync(HttpResponseMessage resp, CancellationToken ct)
+    {
+        if (resp.IsSuccessStatusCode) return;
+        if ((int)resp.StatusCode == 401)
+            throw new MajesticAuthException();
+        var body = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        throw new MajesticHttpException((int)resp.StatusCode, body);
+    }
+
+    private static MajesticConfig ParseConfig(string rawJson, JsonElement root)
+    {
+        // Majestic groups video knobs under video0 / video1 (mainstream / sub).
+        // We surface video0 since it's what most users care about; substream
+        // edits are deferred to phase-05c.
+        var video = TryGetObject(root, "video0") ?? TryGetObject(root, "video");
+        var isp = TryGetObject(root, "isp");
+
+        var nightMode = NightMode.Unknown;
+        var ircut = isp is { } i ? TryGetString(i, "ircut") : null;
+        if (ircut is not null)
+        {
+            if (ircut.Equals("on", StringComparison.OrdinalIgnoreCase)) nightMode = NightMode.Night;
+            else if (ircut.Equals("off", StringComparison.OrdinalIgnoreCase)) nightMode = NightMode.Day;
+            else if (ircut.Equals("auto", StringComparison.OrdinalIgnoreCase)) nightMode = NightMode.Auto;
+        }
+
+        return new MajesticConfig(
+            RawJson: rawJson,
+            Codec: video is { } v1 ? TryGetString(v1, "codec") : null,
+            Fps: video is { } v2 ? TryGetInt(v2, "fps") : null,
+            Resolution: video is { } v3 ? TryGetString(v3, "size") : null,
+            Bitrate: video is { } v4 ? TryGetInt(v4, "bitrate") : null,
+            Profile: video is { } v5 ? TryGetString(v5, "profile") : null,
+            NightMode: nightMode);
+    }
+
+    private static JsonElement? TryGetObject(JsonElement el, string name) =>
+        el.ValueKind == JsonValueKind.Object && el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Object
+            ? v
+            : null;
+
+    private static string? TryGetString(JsonElement el, string name) =>
+        el.ValueKind == JsonValueKind.Object && el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
+            ? v.GetString()
+            : null;
+
+    private static int? TryGetInt(JsonElement el, string name)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(name, out var v)) return null;
+        return v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var i) ? i : null;
+    }
+
+    public void Dispose() => _http.Dispose();
+}
+
+public sealed class MajesticAuthException : Exception
+{
+    public MajesticAuthException() : base("Majestic returned 401 Unauthorized") { }
+}
+
+public sealed class MajesticHttpException : Exception
+{
+    public int StatusCode { get; }
+    public string Body { get; }
+    public MajesticHttpException(int statusCode, string body) : base($"Majestic returned HTTP {statusCode}")
+    {
+        StatusCode = statusCode;
+        Body = body;
+    }
+}

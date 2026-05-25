@@ -48,6 +48,7 @@ public sealed class CameraDirectoryService
             FirmwareVersion: null,
             IncludedInGrid: true,
             HasPtz: false,
+            IsMajestic: false,
             SortOrder: 0,
             CreatedAt: now,
             UpdatedAt: now);
@@ -86,6 +87,15 @@ public sealed class CameraDirectoryService
         var existing = await _cameras.GetAsync(id, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Camera {id} not found");
         var updated = existing with { IncludedInGrid = included, UpdatedAt = DateTime.UtcNow };
+        await _cameras.UpdateAsync(updated, ct).ConfigureAwait(false);
+    }
+
+    public async Task SetIsMajesticAsync(CameraId id, bool value, CancellationToken ct)
+    {
+        var existing = await _cameras.GetAsync(id, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Camera {id} not found");
+        if (existing.IsMajestic == value) return;
+        var updated = existing with { IsMajestic = value, UpdatedAt = DateTime.UtcNow };
         await _cameras.UpdateAsync(updated, ct).ConfigureAwait(false);
     }
 

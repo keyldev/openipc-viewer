@@ -45,12 +45,12 @@ public sealed class SqliteCameraRepository : ICameraRepository
                 Id, GroupId, Name, Host, OnvifPort, HttpPort,
                 RtspMainUri, RtspSubUri, UsernameRef, PasswordRef,
                 OnvifEnabled, OnvifProfileToken, ChipModel, FirmwareVersion,
-                IncludedInGrid, HasPtz, SortOrder, CreatedAt, UpdatedAt)
+                IncludedInGrid, HasPtz, IsMajestic, SortOrder, CreatedAt, UpdatedAt)
             VALUES (
                 @Id, @GroupId, @Name, @Host, @OnvifPort, @HttpPort,
                 @RtspMainUri, @RtspSubUri, @UsernameRef, @PasswordRef,
                 @OnvifEnabled, @OnvifProfileToken, @ChipModel, @FirmwareVersion,
-                @IncludedInGrid, @HasPtz, @SortOrder, @CreatedAt, @UpdatedAt);
+                @IncludedInGrid, @HasPtz, @IsMajestic, @SortOrder, @CreatedAt, @UpdatedAt);
             """,
             ToRow(camera), transaction: tx).ConfigureAwait(false);
         await tx.CommitAsync(ct).ConfigureAwait(false);
@@ -79,6 +79,7 @@ public sealed class SqliteCameraRepository : ICameraRepository
                 FirmwareVersion    = @FirmwareVersion,
                 IncludedInGrid     = @IncludedInGrid,
                 HasPtz             = @HasPtz,
+                IsMajestic         = @IsMajestic,
                 SortOrder          = @SortOrder,
                 UpdatedAt          = @UpdatedAt
             WHERE Id = @Id;
@@ -117,6 +118,7 @@ public sealed class SqliteCameraRepository : ICameraRepository
         FirmwareVersion: row.FirmwareVersion,
         IncludedInGrid: row.IncludedInGrid != 0,
         HasPtz: row.HasPtz != 0,
+        IsMajestic: row.IsMajestic != 0,
         SortOrder: row.SortOrder,
         CreatedAt: DateTime.Parse(row.CreatedAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
         UpdatedAt: DateTime.Parse(row.UpdatedAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
@@ -139,6 +141,7 @@ public sealed class SqliteCameraRepository : ICameraRepository
         c.FirmwareVersion,
         IncludedInGrid = c.IncludedInGrid ? 1 : 0,
         HasPtz = c.HasPtz ? 1 : 0,
+        IsMajestic = c.IsMajestic ? 1 : 0,
         c.SortOrder,
         CreatedAt = c.CreatedAt.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture),
         UpdatedAt = c.UpdatedAt.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture),
@@ -162,6 +165,7 @@ public sealed class SqliteCameraRepository : ICameraRepository
         public string? FirmwareVersion { get; init; }
         public int IncludedInGrid { get; init; }
         public int HasPtz { get; init; }
+        public int IsMajestic { get; init; }
         public int SortOrder { get; init; }
         public string CreatedAt { get; init; } = default!;
         public string UpdatedAt { get; init; } = default!;

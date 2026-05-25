@@ -14,11 +14,13 @@ namespace OpenIPC.Viewer.App.Views.Pages;
 
 public sealed partial class GridPage : UserControl
 {
-    // In-process custom format: payload is the source tile's index in Tiles
-    // as a decimal string. Tile reorder never crosses process boundaries, so
-    // InProcessFormat avoids any clipboard/serializer plumbing.
+    // In-process custom format — payload is the source tile's Tiles index as
+    // a decimal string. Tile reorder never crosses process boundaries, so
+    // InProcessFormat skips clipboard/native plumbing entirely. DataFormat<T>
+    // is constrained to reference types, so we ship the int as a string.
+    // (StringApplicationFormat rejects slashes in the identifier — dot is OK.)
     private static readonly DataFormat<string> TileIndexFormat =
-        DataFormat.CreateStringApplicationFormat("openipc-viewer/grid-tile-index");
+        DataFormat.CreateInProcessFormat<string>("openipc-viewer.grid-tile-index");
 
     public GridPage()
     {

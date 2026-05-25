@@ -10,6 +10,7 @@ using OpenIPC.Viewer.App.Messages;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels.Dialogs;
 using OpenIPC.Viewer.Core.Entities;
+using OpenIPC.Viewer.Core.Onvif.Discovery;
 using OpenIPC.Viewer.Core.Services;
 
 namespace OpenIPC.Viewer.App.ViewModels;
@@ -34,6 +35,8 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
     public bool IsEmpty => IsLoaded && Cameras.Count == 0;
 
     private readonly UserSettingsService _userSettings;
+    private readonly IDiscoveryService _discovery;
+    private bool _autoScanRanThisSession;
 
     public CameraLibraryPageViewModel(
         CameraDirectoryService directory,
@@ -41,6 +44,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         CameraEditorFactory editorFactory,
         DiscoveryDialogFactory discoveryFactory,
         UserSettingsService userSettings,
+        IDiscoveryService discovery,
         ILogger<CameraLibraryPageViewModel> logger)
     {
         _directory = directory;
@@ -48,6 +52,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         _editorFactory = editorFactory;
         _discoveryFactory = discoveryFactory;
         _userSettings = userSettings;
+        _discovery = discovery;
         _logger = logger;
         Cameras.CollectionChanged += (_, _) =>
         {
@@ -70,6 +75,50 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         // delete all cameras.
         if (Cameras.Count == 0 && !_userSettings.Current.WelcomeShown)
             await ShowWelcomeAsync().ConfigureAwait(true);
+
+        if (_userSettings.Current.AutoScanLanOnStartup && !_autoScanRanThisSession)
+            _ = MaybeAutoScanAsync();
+    }
+
+    private async Task MaybeAutoScanAsync()
+    {
+        _autoScanRanThisSession = true;
+        try
+        {
+            // Existing host names already in library — discovery candidates
+            // matching one of these are dropped before any UI prompt.
+            var existing = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in Cameras) existing.Add(row.Camera.Host);
+
+            var found = new System.Collections.Generic.List<string>();
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
+            await foreach (var dc in _discovery.ScanAsync(TimeSpan.FromSeconds(4), cts.Token).ConfigureAwait(true))
+            {
+                if (existing.Add(dc.Host))
+                    found.Add(dc.Host);
+            }
+
+            if (found.Count == 0)
+            {
+                _logger.LogInformation("Auto-scan: no new cameras on the LAN");
+                return;
+            }
+
+            _logger.LogInformation("Auto-scan: {Count} new camera(s) on the LAN: {Hosts}", found.Count, string.Join(", ", found));
+
+            var open = await _dialogs.ConfirmAsync(
+                title: "New cameras found",
+                message: $"Auto-scan found {found.Count} new camera(s) on the LAN ({string.Join(", ", found)}). Open Discovery to add them?",
+                confirmLabel: "Open Discovery",
+                cancelLabel: "Not now").ConfigureAwait(true);
+
+            if (open)
+                await DiscoverCameraAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Auto-scan failed");
+        }
     }
 
     private async Task ShowWelcomeAsync()

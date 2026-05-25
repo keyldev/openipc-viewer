@@ -52,25 +52,40 @@
         <StackPanel Spacing="4">
           <TextBlock Text="Recordings directory"
                      Foreground="{StaticResource TextSecondaryBrush}" />
-          <TextBox Text="{Binding RecordingsDirectory, Mode=OneWay}"
+          <TextBox Text="{Binding EffectiveRecordingsDirectory, Mode=OneWay}"
                    IsReadOnly="True"
                    FontFamily="{StaticResource FontMono}"
                    FontSize="{StaticResource FontSizeSm}"
                    Background="{StaticResource Bg2Brush}"
                    Foreground="{StaticResource TextSecondaryBrush}"
                    BorderBrush="{StaticResource BorderWeakBrush}" />
-          <Button Content="Open recordings folder"
-                  Command="{Binding OpenRecordingsDirectoryCommand}"
-                  Background="Transparent"
-                  BorderBrush="{StaticResource BorderMediumBrush}"
-                  BorderThickness="1"
-                  CornerRadius="6"
-                  Padding="12,6"
-                  Foreground="{StaticResource TextPrimaryBrush}"
-                  HorizontalAlignment="Left" />
-          <TextBlock Text="Custom path picker comes in 11c."
-                     FontSize="{StaticResource FontSizeSm}"
-                     Foreground="{StaticResource TextTertiaryBrush}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Pick folder…"
+                    Command="{Binding PickRecordingsDirectoryCommand}"
+                    Background="Transparent"
+                    BorderBrush="{StaticResource BorderMediumBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,6"
+                    Foreground="{StaticResource TextPrimaryBrush}" />
+            <Button Content="Reset to default"
+                    Command="{Binding ResetRecordingsDirectoryCommand}"
+                    IsVisible="{Binding IsRecordingsDirOverridden}"
+                    Background="Transparent"
+                    BorderBrush="{StaticResource BorderMediumBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,6"
+                    Foreground="{StaticResource TextSecondaryBrush}" />
+            <Button Content="Open"
+                    Command="{Binding OpenRecordingsDirectoryCommand}"
+                    Background="Transparent"
+                    BorderBrush="{StaticResource BorderMediumBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,6"
+                    Foreground="{StaticResource TextPrimaryBrush}" />
+          </StackPanel>
         </StackPanel>
       </StackPanel>
 

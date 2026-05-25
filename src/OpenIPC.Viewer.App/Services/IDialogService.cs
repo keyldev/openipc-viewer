@@ -12,4 +12,6 @@ public interface IDialogService
     Task<bool> ConfirmAsync(string title, string message, string confirmLabel = "Delete", string cancelLabel = "Cancel");
 
     Task<WelcomeResult> ShowWelcomeAsync();
+
+    Task<string?> PickFolderAsync(string? title = null);
 }

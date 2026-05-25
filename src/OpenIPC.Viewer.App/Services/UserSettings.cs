@@ -11,6 +11,7 @@ public sealed record UserSettings(
     bool AutoScanLanOnStartup = false,
     int MaxConcurrentGridSessions = 9,
     string RtspTransport = "tcp",
+    string RecordingsDirOverride = "",
     bool WelcomeShown = false)
 {
     public static UserSettings Default => new();

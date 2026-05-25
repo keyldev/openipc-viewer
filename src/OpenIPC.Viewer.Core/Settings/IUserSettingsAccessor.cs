@@ -1,0 +1,14 @@
+namespace OpenIPC.Viewer.Core.Settings;
+
+// Thin read-only view onto the UI's UserSettings that Core services can
+// consume without taking a dep on the App project (which would invert the
+// architecture). App.Services.UserSettingsService implements this; SharedComposition
+// registers the same instance under both types.
+public interface IUserSettingsAccessor
+{
+    // Empty / null means "use IFileSystem.RecordingsDir as-is". Non-empty
+    // string is an absolute path the user picked in Settings.
+    string? RecordingsDirectoryOverride { get; }
+
+    int MaxConcurrentGridSessions { get; }
+}

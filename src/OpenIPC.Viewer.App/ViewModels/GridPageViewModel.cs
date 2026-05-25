@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App.Messages;
+using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.Core.Entities;
 using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
@@ -22,6 +23,7 @@ public sealed partial class GridPageViewModel : ViewModelBase,
 {
     private readonly CameraDirectoryService _directory;
     private readonly LiveStreamCoordinator _coordinator;
+    private readonly UserSettingsService _userSettings;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<GridPageViewModel> _logger;
 
@@ -44,15 +46,25 @@ public sealed partial class GridPageViewModel : ViewModelBase,
     public GridPageViewModel(
         CameraDirectoryService directory,
         LiveStreamCoordinator coordinator,
+        UserSettingsService userSettings,
         ILoggerFactory loggerFactory)
     {
         _directory = directory;
         _coordinator = coordinator;
+        _userSettings = userSettings;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<GridPageViewModel>();
 
         WeakReferenceMessenger.Default.Register<WindowMinimizedMessage>(this);
         WeakReferenceMessenger.Default.Register<WindowRestoredMessage>(this);
+
+        // Re-render when the user changes the max-sessions cap so currently-
+        // dropped cameras come back (or excess ones go away) without a relaunch.
+        _userSettings.Changed += async (_, _) =>
+        {
+            try { await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => RefreshTilesAsync(CancellationToken.None)); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Grid refresh after settings change failed"); }
+        };
     }
 
     public async Task LoadAsync(CancellationToken ct)
@@ -74,7 +86,12 @@ public sealed partial class GridPageViewModel : ViewModelBase,
 
     private async Task RefreshTilesAsync(CancellationToken ct)
     {
-        var capacity = LayoutSize * LayoutSize;
+        // Two caps stack: the layout selector (1/2x2/3x3 = up to 9 slots) and
+        // the Settings → Video → MaxConcurrentGridSessions ceiling. The lower
+        // of the two wins, so a "max 4" user with a 3x3 grid sees 4 live tiles
+        // and 5 empty placeholders (which still render via the Slots padding
+        // below).
+        var capacity = Math.Min(LayoutSize * LayoutSize, Math.Max(1, _userSettings.MaxConcurrentGridSessions));
         var visible = _allCameras.Where(c => c.IncludedInGrid).Take(capacity).ToList();
         var visibleIds = visible.Select(c => c.Id).ToHashSet();
 
@@ -101,9 +118,11 @@ public sealed partial class GridPageViewModel : ViewModelBase,
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to activate tile for {Camera}", camera.Name); }
         }
 
-        // Slots includes nulls so the grid renders empty placeholders.
+        // Slots fills the *visual* grid (always LayoutSize²), padding with
+        // nulls when MaxConcurrentGridSessions is below the layout capacity.
+        var visualCapacity = LayoutSize * LayoutSize;
         Slots.Clear();
-        for (var i = 0; i < capacity; i++)
+        for (var i = 0; i < visualCapacity; i++)
             Slots.Add(i < Tiles.Count ? Tiles[i] : null);
     }
 

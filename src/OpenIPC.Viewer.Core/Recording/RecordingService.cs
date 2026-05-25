@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OpenIPC.Viewer.Core.Entities;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
+using OpenIPC.Viewer.Core.Settings;
 
 namespace OpenIPC.Viewer.Core.Recording;
 
@@ -18,6 +19,7 @@ public sealed class RecordingService : IAsyncDisposable
     private readonly IRecordingRepository _repo;
     private readonly IFileSystem _fs;
     private readonly CameraDirectoryService _cameras;
+    private readonly IUserSettingsAccessor? _userSettings;
 
     private readonly object _gate = new();
     private readonly Dictionary<CameraId, Handle> _active = new();
@@ -32,12 +34,14 @@ public sealed class RecordingService : IAsyncDisposable
         IRecorder recorder,
         IRecordingRepository repo,
         IFileSystem fs,
-        CameraDirectoryService cameras)
+        CameraDirectoryService cameras,
+        IUserSettingsAccessor? userSettings = null)
     {
         _recorder = recorder;
         _repo = repo;
         _fs = fs;
         _cameras = cameras;
+        _userSettings = userSettings;
     }
 
     public bool IsRecording(CameraId id)
@@ -66,8 +70,14 @@ public sealed class RecordingService : IAsyncDisposable
             ?? throw new InvalidOperationException($"Camera {id} not found");
         var creds = await _cameras.GetCredentialsAsync(id, ct).ConfigureAwait(false);
 
+        // User-picked override (Settings → Recording) takes precedence over
+        // the platform IFileSystem.RecordingsDir default. Empty/missing
+        // means "use the default".
+        var root = !string.IsNullOrWhiteSpace(_userSettings?.RecordingsDirectoryOverride)
+            ? _userSettings!.RecordingsDirectoryOverride!
+            : _fs.RecordingsDir.FullName;
         var dir = Path.Combine(
-            _fs.RecordingsDir.FullName,
+            root,
             Slug(camera.Name),
             DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
         Directory.CreateDirectory(dir);

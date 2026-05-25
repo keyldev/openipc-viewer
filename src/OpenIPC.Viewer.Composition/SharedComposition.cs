@@ -71,7 +71,11 @@ public static class SharedComposition
         // User-tweakable settings (Phase 11). Side-effects (e.g. live Serilog
         // level switching) are wired by each platform composition after the
         // provider is built — keeps the App project free of Serilog refs.
+        // Re-exposed under IUserSettingsAccessor so Core services (e.g.
+        // RecordingService) can read user prefs without taking a dep on App.
         services.AddSingleton<UserSettingsService>();
+        services.AddSingleton<OpenIPC.Viewer.Core.Settings.IUserSettingsAccessor>(
+            sp => sp.GetRequiredService<UserSettingsService>());
 
         // ViewModels — singletons so navigation preserves state across
         // sidebar/tab switches and messenger registrations stay alive.

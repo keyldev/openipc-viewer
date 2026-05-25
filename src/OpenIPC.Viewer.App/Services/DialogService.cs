@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using OpenIPC.Viewer.App.ViewModels.Dialogs;
 using OpenIPC.Viewer.App.Views.Dialogs;
 
@@ -49,6 +51,20 @@ public sealed class DialogService : IDialogService
 
         var dlg = new WelcomeDialog();
         return await dlg.ShowDialog<WelcomeResult>(owner);
+    }
+
+    public async Task<string?> PickFolderAsync(string? title = null)
+    {
+        var owner = ResolveOwner();
+        if (owner is null) return null;
+
+        var folders = await owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = title ?? "Pick a folder",
+            AllowMultiple = false,
+        });
+        var first = folders.FirstOrDefault();
+        return first?.TryGetLocalPath();
     }
 
     private static Window? ResolveOwner() =>

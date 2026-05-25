@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Core.Platform;
+using OpenIPC.Viewer.Core.Settings;
 
 namespace OpenIPC.Viewer.App.Services;
 
@@ -16,8 +17,12 @@ namespace OpenIPC.Viewer.App.Services;
 // Load is best-effort: a corrupt or missing file leaves defaults in place
 // and logs a warning. Save is atomic (temp + move) to avoid half-written
 // files on crash.
-public sealed class UserSettingsService
+public sealed class UserSettingsService : IUserSettingsAccessor
 {
+    public string? RecordingsDirectoryOverride =>
+        string.IsNullOrWhiteSpace(Current.RecordingsDirOverride) ? null : Current.RecordingsDirOverride;
+    public int MaxConcurrentGridSessions => Current.MaxConcurrentGridSessions;
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,

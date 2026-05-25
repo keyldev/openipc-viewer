@@ -10,4 +10,6 @@ public interface IDialogService
     Task<DiscoveryDialogResult?> ShowDiscoveryDialogAsync(DiscoveryDialogViewModel viewModel);
 
     Task<bool> ConfirmAsync(string title, string message, string confirmLabel = "Delete", string cancelLabel = "Cancel");
+
+    Task<WelcomeResult> ShowWelcomeAsync();
 }

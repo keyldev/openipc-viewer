@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Android.Platform;
 using OpenIPC.Viewer.Android.Recording;
 using OpenIPC.Viewer.App;
+using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.Composition;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Recording;
@@ -20,11 +21,13 @@ internal static class Composition
     public static ServiceProvider Build(Context context)
     {
         var configuration = BuildConfiguration();
-        var serilog = BuildSerilog(configuration);
+        var levelSwitch = new Serilog.Core.LoggingLevelSwitch(Serilog.Events.LogEventLevel.Information);
+        var serilog = BuildSerilog(configuration, levelSwitch);
 
         var services = new ServiceCollection();
 
         services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(levelSwitch);
 
         services.AddLogging(b =>
         {
@@ -46,7 +49,22 @@ internal static class Composition
 
         services.AddSharedServices();
 
-        return services.BuildServiceProvider(validateScopes: true);
+        var provider = services.BuildServiceProvider(validateScopes: true);
+        HookUserSettingsToLogLevel(provider, levelSwitch);
+        return provider;
+    }
+
+    private static void HookUserSettingsToLogLevel(IServiceProvider sp, Serilog.Core.LoggingLevelSwitch levelSwitch)
+    {
+        var settings = sp.GetRequiredService<UserSettingsService>();
+        void Apply()
+        {
+            levelSwitch.MinimumLevel = settings.Current.VerboseLogging
+                ? Serilog.Events.LogEventLevel.Debug
+                : Serilog.Events.LogEventLevel.Information;
+        }
+        Apply();
+        settings.Changed += (_, _) => Apply();
     }
 
     private static IConfiguration BuildConfiguration()
@@ -61,12 +79,13 @@ internal static class Composition
             .Build();
     }
 
-    private static Serilog.ILogger BuildSerilog(IConfiguration configuration)
+    private static Serilog.ILogger BuildSerilog(IConfiguration configuration, Serilog.Core.LoggingLevelSwitch levelSwitch)
     {
         var logFile = Path.Combine(AppPaths.LogsDir.FullName, "openipc-viewer-.log");
 
         return new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
+            .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
             .WriteTo.File(
                 path: logFile,

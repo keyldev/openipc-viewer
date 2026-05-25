@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OpenIPC.Viewer.App.Views.Dialogs.WelcomeDialog"
+        Title="Welcome to OpenIPC Viewer"
+        Width="480" Height="360"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{StaticResource Bg1Brush}"
+        FontFamily="{StaticResource FontSans}"
+        FontSize="{StaticResource FontSizeBase}"
+        Foreground="{StaticResource TextPrimaryBrush}">
+
+  <StackPanel Spacing="16" Margin="32" VerticalAlignment="Center">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <Image Source="/Assets/openipc-logo.png" Width="40" Height="40" />
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="OpenIPC Viewer"
+                   FontSize="{StaticResource FontSizeLg}"
+                   FontWeight="SemiBold" />
+        <TextBlock Text="Cross-platform viewer for OpenIPC IP cameras"
+                   FontSize="{StaticResource FontSizeSm}"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+      </StackPanel>
+    </StackPanel>
+
+    <TextBlock Text="Add your first camera to get started."
+               Foreground="{StaticResource TextSecondaryBrush}"
+               Margin="0,8,0,0" />
+
+    <Button Name="DiscoverButton"
+            Content="Scan local network (WS-Discovery)"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="{StaticResource AccentBrush}"
+            Foreground="White"
+            CornerRadius="8" />
+
+    <Button Name="AddManuallyButton"
+            Content="Add manually (host + RTSP path)"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="Transparent"
+            BorderBrush="{StaticResource BorderMediumBrush}"
+            BorderThickness="1"
+            CornerRadius="8" />
+
+    <Button Name="SkipButton"
+            Content="Skip — I'll add later"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="Transparent"
+            Foreground="{StaticResource TextSecondaryBrush}"
+            BorderThickness="0" />
+
+  </StackPanel>
+
+</Window>

@@ -41,6 +41,16 @@ public sealed class DialogService : IDialogService
         return result == true;
     }
 
+    public async Task<WelcomeResult> ShowWelcomeAsync()
+    {
+        var owner = ResolveOwner();
+        if (owner is null)
+            return WelcomeResult.Skip;
+
+        var dlg = new WelcomeDialog();
+        return await dlg.ShowDialog<WelcomeResult>(owner);
+    }
+
     private static Window? ResolveOwner() =>
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 }

@@ -68,6 +68,11 @@ public static class SharedComposition
         services.AddSingleton<CameraEditorFactory>();
         services.AddSingleton<DiscoveryDialogFactory>();
 
+        // User-tweakable settings (Phase 11). Side-effects (e.g. live Serilog
+        // level switching) are wired by each platform composition after the
+        // provider is built — keeps the App project free of Serilog refs.
+        services.AddSingleton<UserSettingsService>();
+
         // ViewModels — singletons so navigation preserves state across
         // sidebar/tab switches and messenger registrations stay alive.
         services.AddSingleton<MainWindowViewModel>();

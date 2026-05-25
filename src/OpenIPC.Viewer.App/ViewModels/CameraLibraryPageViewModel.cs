@@ -33,17 +33,21 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
     public bool HasCameras => IsLoaded && Cameras.Count > 0;
     public bool IsEmpty => IsLoaded && Cameras.Count == 0;
 
+    private readonly UserSettingsService _userSettings;
+
     public CameraLibraryPageViewModel(
         CameraDirectoryService directory,
         IDialogService dialogs,
         CameraEditorFactory editorFactory,
         DiscoveryDialogFactory discoveryFactory,
+        UserSettingsService userSettings,
         ILogger<CameraLibraryPageViewModel> logger)
     {
         _directory = directory;
         _dialogs = dialogs;
         _editorFactory = editorFactory;
         _discoveryFactory = discoveryFactory;
+        _userSettings = userSettings;
         _logger = logger;
         Cameras.CollectionChanged += (_, _) =>
         {
@@ -59,6 +63,34 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         foreach (var camera in cameras)
             Cameras.Add(new CameraRowViewModel(camera, _directory, _logger));
         IsLoaded = true;
+
+        // First-run welcome — only the very first time the library opens
+        // empty. WelcomeShown persists across launches; the user can't be
+        // nagged again after they've dismissed it once, even if they later
+        // delete all cameras.
+        if (Cameras.Count == 0 && !_userSettings.Current.WelcomeShown)
+            await ShowWelcomeAsync().ConfigureAwait(true);
+    }
+
+    private async Task ShowWelcomeAsync()
+    {
+        // Mark "shown" up front so a dialog crash doesn't loop us back into
+        // the prompt on every refresh. If the user picks an action, we run
+        // the matching command after persisting.
+        await _userSettings.UpdateAsync(_userSettings.Current with { WelcomeShown = true })
+            .ConfigureAwait(true);
+
+        var pick = await _dialogs.ShowWelcomeAsync().ConfigureAwait(true);
+        switch (pick)
+        {
+            case WelcomeResult.Discover:
+                await DiscoverCameraAsync().ConfigureAwait(true);
+                break;
+            case WelcomeResult.AddManually:
+                await AddCameraAsync().ConfigureAwait(true);
+                break;
+            // Skip → nothing.
+        }
     }
 
     [RelayCommand]

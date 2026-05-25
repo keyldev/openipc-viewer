@@ -1,18 +1,39 @@
 # OpenIPC Viewer
 
 Cross-platform desktop and mobile viewer for OpenIPC IP cameras.
-Built with .NET 9 and Avalonia 12.
+Built with .NET 9 / 10 and Avalonia 12.
 
-> Status: **Phase 8** — Linux/macOS desktop heads with platform-native HW decode + credential storage; first public `v0.1.0-beta` release pending.
+[![build](https://github.com/keyldev/openipc-viewer/actions/workflows/build.yml/badge.svg)](https://github.com/keyldev/openipc-viewer/actions/workflows/build.yml)
 
-## Build and run
+> Status: **Phase 11a** — settings UI, first-run onboarding, brand polish.
+> Targets: Windows / Linux / macOS desktops + Android + iOS. First public
+> `v0.1.0-beta` release pending.
 
-Requires .NET 9 SDK + PowerShell (for the FFmpeg fetch script) + Docker (only for integration tests).
+## Layout
+
+```
+src/
+  OpenIPC.Viewer.Core/            netstandard2.1 — domain, no IO, no UI, no package deps
+  OpenIPC.Viewer.Infrastructure/  net9.0         — SQLite, secrets, decoder factories
+  OpenIPC.Viewer.Video/           net9.0         — FFmpeg pipeline (FFmpeg.AutoGen + SkiaSharp)
+  OpenIPC.Viewer.Devices/         net9.0         — ONVIF, Majestic HTTP
+  OpenIPC.Viewer.App/             net9.0         — Avalonia views and viewmodels (cross-platform)
+  OpenIPC.Viewer.Composition/     net9.0         — shared DI registrations (used by every head)
+  OpenIPC.Viewer.Desktop/         net9.0         — Win/Lin/Mac host, classic-window lifetime
+  OpenIPC.Viewer.Android/         net10.0-android — Android host (min API 31), foreground-service recording
+  OpenIPC.Viewer.iOS/             net10.0-ios     — iOS host (min 16), foreground-only recording
+tests/
+  OpenIPC.Viewer.Core.Tests/      xUnit
+  OpenIPC.Viewer.Video.Tests/     xUnit + MediaMTX integration
+```
+
+`App` references `Core` only. Infrastructure, Video, Devices and the platform
+trio (`IFileSystem` / `ISecretsStore` / `IHwDecoderFactory`) are wired into
+each head via `OpenIPC.Viewer.Composition.SharedComposition.AddSharedServices()`.
+
+## Desktop — Windows / Linux / macOS
 
 ```bash
-# one-time: pull FFmpeg shared-build DLLs into runtimes/win-x64/native/
-powershell -ExecutionPolicy Bypass -File tools/fetch-ffmpeg.ps1
-
 dotnet restore OpenIPC.Viewer.slnx
 dotnet build   OpenIPC.Viewer.slnx
 dotnet test    OpenIPC.Viewer.slnx --no-build
@@ -21,59 +42,68 @@ dotnet run --project src/OpenIPC.Viewer.Desktop
 
 Build runs with `TreatWarningsAsErrors=true`; any warning fails the build.
 
-## Native dependencies
+**Windows** ships FFmpeg shared-build DLLs side-by-side. Run
+`tools/fetch-ffmpeg.ps1` once to download them from `BtbN/FFmpeg-Builds`
+(`n7.1` ABI) into `runtimes/win-x64/native/`. Re-run after bumping the pin.
 
-**Windows:** FFmpeg shared-build DLLs (LGPL, version pin `n7.1`) are **not**
-committed. `tools/fetch-ffmpeg.ps1` downloads them from `BtbN/FFmpeg-Builds`
-releases into `runtimes/win-x64/native/`, which the Video project copies into
-the Desktop output. Re-run the script when bumping the FFmpeg pin.
-
-**Linux:** install FFmpeg + libsecret from the distro repos:
+**Linux** uses the system FFmpeg via the default loader path:
 ```
 sudo apt install ffmpeg libavcodec-extra libsecret-1-0 libsecret-tools
 ```
-The app uses the system FFmpeg via the standard loader path. `secret-tool` is
-used to read/write credentials in the GNOME/KDE keyring; if D-Bus isn't
-available (headless servers) an AES-GCM file fallback kicks in automatically.
-VAAPI hardware decode needs `/dev/dri/renderD128` and your user in the
-`render` (or `video`) group.
+Credentials read/write through `secret-tool` against GNOME/KDE keyring; an
+AES-GCM file fallback (machine-id-derived key) kicks in if D-Bus isn't
+available. VAAPI hardware decode needs `/dev/dri/renderD128` and your user
+in the `render` (or `video`) group.
 
-**macOS:** install FFmpeg via Homebrew:
+**macOS** uses Homebrew FFmpeg:
 ```
 brew install ffmpeg
 ```
 Credentials live in the macOS Keychain via the built-in `security` tool.
-VideoToolbox HW decode works on any Mac 12+ (.NET 9's minimum). Gatekeeper
-will block unsigned downloaded builds on first launch — right-click the .app
-and choose *Open* once; signing/notarization arrives in a later phase.
+VideoToolbox HW decode works on any Mac 12+. Gatekeeper blocks unsigned
+downloaded builds on first launch — right-click the .app, choose *Open*
+(signing/notarization arrives in a later phase).
 
-> **Caveat for v0.1.0-beta:** the Linux and macOS code paths (libsecret /
-> Keychain / VAAPI / VideoToolbox) have been validated by CI build only, not
-> by a live end-to-end demo. Feedback from real Linux/Mac users is very
-> welcome.
+## Android
 
-## Layout
-
-```
-src/
-  OpenIPC.Viewer.Core/            netstandard2.1 — domain, no IO, no UI
-  OpenIPC.Viewer.Infrastructure/  net9.0         — SQLite, secrets, config
-  OpenIPC.Viewer.Video/           net9.0         — FFmpeg pipeline (FFmpeg.AutoGen + SkiaSharp)
-  OpenIPC.Viewer.Devices/         net9.0         — ONVIF, Majestic HTTP
-  OpenIPC.Viewer.App/             net9.0         — Avalonia views and viewmodels
-  OpenIPC.Viewer.Desktop/         net9.0         — Win/Lin/Mac host, DI composition
-tests/
-  OpenIPC.Viewer.Core.Tests/      xUnit
-  OpenIPC.Viewer.Video.Tests/     xUnit + MediaMTX integration
+```bash
+dotnet workload install android
+dotnet build src/OpenIPC.Viewer.Android/OpenIPC.Viewer.Android.csproj -c Release
 ```
 
-`App` references `Core` only. Infrastructure, Video, Devices are wired into `Desktop` via DI.
+CI cross-compiles FFmpeg `n7.1` for `android-arm64` via NDK r27c on every
+build (cached when version/script unchanged). Recording uses in-process
+libavformat + a foreground service for OS keep-alive (declared with
+`foregroundServiceType=dataSync`); recording on Android requires
+`POST_NOTIFICATIONS` runtime permission on Android 13+, prompted on the
+first record. Credentials use an AES-GCM file keyed off
+`Settings.Secure.AndroidId` — `EncryptedSharedPreferences` via AndroidX
+Security lands in a follow-up.
+
+## iOS
+
+```bash
+dotnet workload install ios
+dotnet build src/OpenIPC.Viewer.iOS/OpenIPC.Viewer.iOS.csproj -c Release    # Mac-only for the link step
+```
+
+iOS recording is **foreground-only** — Apple doesn't grant 24/7 background
+captures to surveillance apps. Credentials use an AES-GCM file keyed off
+`UIDevice.identifierForVendor`; real Keychain via `Security.framework`
+P/Invoke is a follow-up. CI builds an unsigned `.app`/`.ipa`; TestFlight
+signing arrives in the release-polish phase.
+
+> **CI-only validation caveat.** Linux/macOS/Android/iOS code paths are
+> built + linked in CI but not yet end-to-end tested on real devices for
+> every commit. Feedback from desktop-Linux, Mac, Android and iOS users
+> is very welcome — open an issue with the OS version, what you did,
+> what happened.
 
 ## Test fixture: MediaMTX
 
-The video integration test and manual smoke depend on a local RTSP source. A
-MediaMTX container is provided that synthesises a 1280×720@25 h264 test pattern
-on demand at `rtsp://localhost:8554/test`.
+The video integration test and manual smoke depend on a local RTSP source.
+A MediaMTX container is provided that synthesises a 1280×720@25 h264 test
+pattern on demand at `rtsp://localhost:8554/test`.
 
 ```bash
 docker compose -f tools/mediamtx/docker-compose.yml up -d
@@ -92,22 +122,26 @@ Per-platform AppData root:
 | Windows | `%LOCALAPPDATA%\OpenIPC.Viewer\` |
 | Linux | `$XDG_DATA_HOME/openipc-viewer/` (default `~/.local/share/openipc-viewer/`) |
 | macOS | `~/Library/Application Support/OpenIPC.Viewer/` |
+| Android | `/data/data/org.openipc.viewer/files/` (app-private; uninstall wipes) |
+| iOS | `~/Library/Application Support/OpenIPC.Viewer/` (sandbox; Files-app visible via UIFileSharingEnabled) |
 
 Inside the root:
+
 ```
 logs/openipc-viewer-{date}.log    rolling daily, 7-day retention
 appsettings.json                  optional override over the one shipped with the app
-openipc-viewer.db                 SQLite database (cameras, recordings metadata, events)
+usersettings.json                 settings written by the in-app Settings page
+openipc-viewer.db                 SQLite (cameras, recordings metadata, events)
 secrets.bin / secrets.salt        encrypted credential fallback (used when no native keystore)
 snapshots/{camera}/*.jpg          manual snapshots
 recordings/                       MP4 segments (Linux/macOS may override via XDG_VIDEOS_DIR / ~/Movies)
 ```
 
-Credentials live in the native keystore when available (Windows DPAPI / macOS
-Keychain / Linux libsecret). The encrypted-file fallback is only used when
-none of those is reachable.
+Credentials live in the native keystore when available (Windows DPAPI /
+macOS Keychain / Linux libsecret). The encrypted-file fallback is used
+when no keystore is reachable.
 
 ## License
 
-MIT. Bundled FFmpeg DLLs are LGPL — they ship as side-by-side shared libs and
-can be replaced by the user.
+MIT. Bundled FFmpeg DLLs and self-built FFmpeg `.so` are LGPL — shipped as
+side-by-side shared libs, replaceable by the user.

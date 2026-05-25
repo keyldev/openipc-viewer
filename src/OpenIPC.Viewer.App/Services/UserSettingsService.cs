@@ -1,0 +1,79 @@
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OpenIPC.Viewer.Core.Platform;
+
+namespace OpenIPC.Viewer.App.Services;
+
+// Persisted user preferences. UI ViewModels read Current + react to Changed;
+// runtime side-effects (e.g. Serilog level switch) live in the platform host
+// composition where the relevant library refs are available — keeps App
+// project free of Serilog or platform-specific deps.
+//
+// Load is best-effort: a corrupt or missing file leaves defaults in place
+// and logs a warning. Save is atomic (temp + move) to avoid half-written
+// files on crash.
+public sealed class UserSettingsService
+{
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
+    };
+
+    private readonly string _path;
+    private readonly ILogger<UserSettingsService> _logger;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+
+    public UserSettings Current { get; private set; } = UserSettings.Default;
+
+    public event EventHandler? Changed;
+
+    public UserSettingsService(IFileSystem fs, ILogger<UserSettingsService> logger)
+    {
+        _path = Path.Combine(fs.AppDataDir.FullName, "usersettings.json");
+        _logger = logger;
+        TryLoad();
+    }
+
+    public async Task UpdateAsync(UserSettings next, CancellationToken ct = default)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            Current = next;
+            await SaveAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void TryLoad()
+    {
+        if (!File.Exists(_path)) return;
+        try
+        {
+            using var stream = File.OpenRead(_path);
+            var loaded = JsonSerializer.Deserialize<UserSettings>(stream, JsonOpts);
+            if (loaded is not null) Current = loaded;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load usersettings.json — using defaults");
+        }
+    }
+
+    private async Task SaveAsync(CancellationToken ct)
+    {
+        var tmp = _path + ".tmp";
+        await using (var stream = File.Create(tmp))
+            await JsonSerializer.SerializeAsync(stream, Current, JsonOpts, ct).ConfigureAwait(false);
+        File.Move(tmp, _path, overwrite: true);
+    }
+}

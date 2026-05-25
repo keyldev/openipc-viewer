@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
+using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.Composition;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Recording;
@@ -20,11 +21,13 @@ internal static class Composition
     public static ServiceProvider Build()
     {
         var configuration = BuildConfiguration();
-        var serilog = BuildSerilog(configuration);
+        var levelSwitch = new Serilog.Core.LoggingLevelSwitch(Serilog.Events.LogEventLevel.Information);
+        var serilog = BuildSerilog(configuration, levelSwitch);
 
         var services = new ServiceCollection();
 
         services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(levelSwitch);
 
         services.AddLogging(b =>
         {
@@ -46,7 +49,25 @@ internal static class Composition
 
         services.AddSharedServices();
 
-        return services.BuildServiceProvider(validateScopes: true);
+        var provider = services.BuildServiceProvider(validateScopes: true);
+        HookUserSettingsToLogLevel(provider, levelSwitch);
+        return provider;
+    }
+
+    // Bridges UserSettingsService → LoggingLevelSwitch without dragging the
+    // Serilog dep into the App project. Applies the saved verbose flag once
+    // on startup, then re-applies on every Changed event.
+    private static void HookUserSettingsToLogLevel(IServiceProvider sp, Serilog.Core.LoggingLevelSwitch levelSwitch)
+    {
+        var settings = sp.GetRequiredService<UserSettingsService>();
+        void Apply()
+        {
+            levelSwitch.MinimumLevel = settings.Current.VerboseLogging
+                ? Serilog.Events.LogEventLevel.Debug
+                : Serilog.Events.LogEventLevel.Information;
+        }
+        Apply();
+        settings.Changed += (_, _) => Apply();
     }
 
     private static void AddPlatformServices(IServiceCollection services)
@@ -106,12 +127,13 @@ internal static class Composition
             .Build();
     }
 
-    private static Serilog.ILogger BuildSerilog(IConfiguration configuration)
+    private static Serilog.ILogger BuildSerilog(IConfiguration configuration, Serilog.Core.LoggingLevelSwitch levelSwitch)
     {
         var logFile = Path.Combine(AppPaths.LogsDir.FullName, "openipc-viewer-.log");
 
         var cfg = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
+            .MinimumLevel.ControlledBy(levelSwitch)
             .Enrich.FromLogContext()
             .WriteTo.File(
                 path: logFile,

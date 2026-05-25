@@ -16,18 +16,24 @@ public sealed class Localizer : INotifyPropertyChanged
 {
     public static Localizer Instance { get; } = new();
 
-    private IReadOnlyDictionary<string, string> _current = English;
+    // _current is left nullable on purpose. Static field init runs in
+    // declaration order — Instance (line above) runs before English/Russian
+    // are assigned, so any field initializer like `= English` would capture
+    // null. By the time anyone reads the indexer, all static initializers
+    // for this type have completed, so `?? English` is safe and never null.
+    // SetLanguage assigns _current properly once called.
+    private IReadOnlyDictionary<string, string>? _current;
     private LangCode _active = LangCode.English;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public string this[string key] => _current.TryGetValue(key, out var v) ? v : key;
+    public string this[string key] => (_current ?? English).TryGetValue(key, out var v) ? v : key;
     public LangCode Active => _active;
 
     public void SetLanguage(LangCode code)
     {
         var resolved = code == LangCode.System ? DetectSystem() : code;
-        if (resolved == _active) return;
+        if (resolved == _active && _current is not null) return;
 
         _current = resolved switch
         {

@@ -1,8 +1,11 @@
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using OpenIPC.Viewer.App.ViewModels.Dialogs;
 using OpenIPC.Viewer.App.Views.Dialogs;
@@ -67,12 +70,62 @@ public sealed class DialogService : IDialogService
         return first?.TryGetLocalPath();
     }
 
+    public async Task<string?> PickSaveFileAsync(string suggestedName, string title, string extension)
+    {
+        var owner = ResolveOwner();
+        if (owner is null) return null;
+
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = extension,
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType($"{extension.ToUpperInvariant()} file")
+                {
+                    Patterns = new[] { $"*.{extension}" },
+                },
+            },
+        });
+        return file?.TryGetLocalPath();
+    }
+
+    public async Task CopyFileToClipboardAsync(string path)
+    {
+        var owner = ResolveOwner();
+        var clipboard = owner?.Clipboard;
+        if (clipboard is null) return;
+
+        if (File.Exists(path))
+        {
+            var file = await owner!.StorageProvider.TryGetFileFromPathAsync(path);
+            if (file is not null)
+            {
+                await clipboard.SetValueAsync(DataFormat.File, (IStorageItem)file);
+                return;
+            }
+        }
+
+        // Fallback: copy the path as text (works in chat apps as a link/string).
+        await clipboard.SetTextAsync(path);
+    }
+
     public async Task ShowManageGroupsAsync(ManageGroupsViewModel viewModel)
     {
         var owner = ResolveOwner();
         if (owner is null) return;
         var dlg = new ManageGroupsDialog { DataContext = viewModel };
         await dlg.ShowDialog(owner);
+    }
+
+    public async Task<string?> ShowRawConfigEditorAsync(string initialJson)
+    {
+        var owner = ResolveOwner();
+        if (owner is null) return null;
+        var dlg = new RawConfigEditorDialog();
+        dlg.SetInitialText(initialJson);
+        return await dlg.ShowDialog<string?>(owner);
     }
 
     private static Window? ResolveOwner() =>

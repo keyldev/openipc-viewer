@@ -29,6 +29,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     private readonly RecordingService _recordings;
     private readonly IFileSystem _fs;
     private readonly UserSettingsService _userSettings;
+    private readonly IDialogService _dialogs;
     private readonly ILogger<SingleCameraPageViewModel> _logger;
     private Camera _camera;
     private DispatcherTimer? _recTimer;
@@ -110,6 +111,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         RecordingService recordings,
         IFileSystem fs,
         UserSettingsService userSettings,
+        IDialogService dialogs,
         ILogger<SingleCameraPageViewModel> logger)
     {
         _camera = camera;
@@ -120,6 +122,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         _recordings = recordings;
         _fs = fs;
         _userSettings = userSettings;
+        _dialogs = dialogs;
         _logger = logger;
 
         IsRecording = _recordings.IsRecording(_camera.Id);
@@ -142,7 +145,11 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
 
     private void OnUserSettingsChanged(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(ShowTelemetryBadges)));
+        Dispatcher.UIThread.Post(() =>
+        {
+            OnPropertyChanged(nameof(ShowTelemetryBadges));
+            OnPropertyChanged(nameof(IsRawConfigEditorEnabled));
+        });
     }
 
     private void OnRecordingsStateChanged(object? sender, CameraId cam)
@@ -379,6 +386,44 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     [RelayCommand]
     private void ToggleRawJson() => ShowRawJson = !ShowRawJson;
 
+    // Visible only when the user opts in via Settings → Advanced. The flag is
+    // a property (not [ObservableProperty]) — re-raised from OnUserSettingsChanged
+    // so toggling the checkbox while on this page flips the button live.
+    public bool IsRawConfigEditorEnabled => _userSettings.Current.RawConfigEditorEnabled;
+
+    [RelayCommand]
+    private async Task EditRawConfigAsync()
+    {
+        if (!IsMajestic || MajesticConfig is null) return;
+        var initial = MajesticConfig.RawJson;
+        var edited = await _dialogs.ShowRawConfigEditorAsync(initial).ConfigureAwait(true);
+        if (edited is null) return;
+        if (edited == initial) return;
+
+        ApplyInProgress = true;
+        ApplyStatus = "Applying raw config…";
+        try
+        {
+            var creds = await _directory.GetCredentialsAsync(_camera.Id, CancellationToken.None).ConfigureAwait(true);
+            var endpoint = new MajesticEndpoint(_camera.Host, _camera.HttpPort, creds);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await _majestic.UpdateRawConfigAsync(endpoint, edited, cts.Token).ConfigureAwait(true);
+
+            ApplyStatus = "Applied. Restarting stream…";
+            await ReloadStreamAsync().ConfigureAwait(true);
+            ApplyStatus = "Done.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Apply raw Majestic config failed");
+            ApplyStatus = $"Failed: {ex.Message}";
+        }
+        finally
+        {
+            ApplyInProgress = false;
+        }
+    }
+
     private async Task<(MajesticConfig config, MajesticInfo info)> GetMajesticStateAsync(MajesticEndpoint ep, CancellationToken ct)
     {
         var cfgTask = _majestic.GetConfigAsync(ep, ct);
@@ -517,6 +562,60 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         {
             _logger.LogError(ex, "Snapshot failed");
             ErrorMessage = $"Snapshot failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenSnapshot()
+    {
+        var path = SnapshotPath;
+        if (string.IsNullOrEmpty(path)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Open snapshot failed");
+            ErrorMessage = $"Open snapshot failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task CopySnapshotAsync()
+    {
+        var path = SnapshotPath;
+        if (string.IsNullOrEmpty(path)) return;
+        try
+        {
+            await _dialogs.CopyFileToClipboardAsync(path).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Copy snapshot failed");
+            ErrorMessage = $"Copy snapshot failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveSnapshotAsAsync()
+    {
+        var path = SnapshotPath;
+        if (string.IsNullOrEmpty(path)) return;
+        try
+        {
+            var target = await _dialogs.PickSaveFileAsync(Path.GetFileName(path), "Save snapshot", "jpg").ConfigureAwait(true);
+            if (string.IsNullOrEmpty(target)) return;
+            File.Copy(path, target, overwrite: true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Save snapshot as failed");
+            ErrorMessage = $"Save snapshot failed: {ex.Message}";
         }
     }
 

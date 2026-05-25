@@ -20,6 +20,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
 
     [ObservableProperty] private bool _showTelemetryOverlay;
     [ObservableProperty] private bool _verboseLogging;
+    [ObservableProperty] private bool _rawConfigEditorEnabled;
     [ObservableProperty] private bool _autoScanLanOnStartup;
     [ObservableProperty] private int _maxConcurrentGridSessions;
     [ObservableProperty] private string _rtspTransport = "tcp";
@@ -64,6 +65,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
             var s = _settings.Current;
             ShowTelemetryOverlay = s.ShowTelemetryOverlay;
             VerboseLogging = s.VerboseLogging;
+            RawConfigEditorEnabled = s.RawConfigEditorEnabled;
             AutoScanLanOnStartup = s.AutoScanLanOnStartup;
             MaxConcurrentGridSessions = s.MaxConcurrentGridSessions;
             RtspTransport = s.RtspTransport;
@@ -75,6 +77,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
 
     partial void OnShowTelemetryOverlayChanged(bool value) => Persist();
     partial void OnVerboseLoggingChanged(bool value) => Persist();
+    partial void OnRawConfigEditorEnabledChanged(bool value) => Persist();
     partial void OnAutoScanLanOnStartupChanged(bool value) => Persist();
     partial void OnMaxConcurrentGridSessionsChanged(int value) => Persist();
     partial void OnRtspTransportChanged(string value) => Persist();
@@ -88,6 +91,7 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
         {
             ShowTelemetryOverlay = ShowTelemetryOverlay,
             VerboseLogging = VerboseLogging,
+            RawConfigEditorEnabled = RawConfigEditorEnabled,
             AutoScanLanOnStartup = AutoScanLanOnStartup,
             MaxConcurrentGridSessions = MaxConcurrentGridSessions,
             RtspTransport = RtspTransport,

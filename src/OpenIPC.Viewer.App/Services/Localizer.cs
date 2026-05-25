@@ -107,9 +107,15 @@ public sealed class Localizer : INotifyPropertyChanged
         ["Settings.Discovery.AutoScan"] = "Run WS-Discovery on launch",
 
         ["Settings.Advanced.VerboseLogging"] = "Verbose logging (debug level)",
+        ["Settings.Advanced.RawConfigEditor"] = "Allow raw Majestic config editing (advanced)",
         ["Settings.Advanced.OpenAppData"] = "Open app data folder",
 
         ["Settings.About.Repository"] = "GitHub repository →",
+
+        ["Snapshot.Saved"] = "Saved →",
+        ["Snapshot.Open"] = "Open",
+        ["Snapshot.Copy"] = "Copy",
+        ["Snapshot.SaveAs"] = "Save as…",
 
         ["Lang.System"] = "System",
         ["Lang.English"] = "English",
@@ -177,9 +183,15 @@ public sealed class Localizer : INotifyPropertyChanged
         ["Settings.Discovery.AutoScan"] = "Запускать WS-Discovery при старте",
 
         ["Settings.Advanced.VerboseLogging"] = "Подробные логи (debug)",
+        ["Settings.Advanced.RawConfigEditor"] = "Разрешить правку raw-конфига Majestic (продвинутое)",
         ["Settings.Advanced.OpenAppData"] = "Открыть папку данных",
 
         ["Settings.About.Repository"] = "Репозиторий на GitHub →",
+
+        ["Snapshot.Saved"] = "Сохранено →",
+        ["Snapshot.Open"] = "Открыть",
+        ["Snapshot.Copy"] = "Копировать",
+        ["Snapshot.SaveAs"] = "Сохранить как…",
 
         ["Lang.System"] = "Системный",
         ["Lang.English"] = "English",

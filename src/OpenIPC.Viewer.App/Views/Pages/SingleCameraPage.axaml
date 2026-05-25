@@ -202,8 +202,8 @@
           <ComboBox Grid.Column="9" ItemsSource="{Binding ProfileOptions}" SelectedItem="{Binding DraftProfile, Mode=TwoWay}" MinWidth="100" />
         </Grid>
 
-        <!-- Action row: night mode + apply + view raw -->
-        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto">
+        <!-- Action row: night mode + apply + view raw + edit raw -->
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
           <Button Grid.Column="0" Content="Day" Command="{Binding SetNightModeCommand}" CommandParameter="day"
                   Padding="10,4" FontSize="11" Background="{StaticResource Bg3Brush}" Foreground="{StaticResource TextPrimaryBrush}" CornerRadius="4" Margin="0,0,4,0" />
           <Button Grid.Column="1" Content="Night" Command="{Binding SetNightModeCommand}" CommandParameter="night"
@@ -222,7 +222,14 @@
                   Padding="10,4" FontSize="11"
                   Background="Transparent" BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1"
                   CornerRadius="4" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,8,0" />
-          <Button Grid.Column="5" Content="Apply"
+          <Button Grid.Column="5" Content="Edit raw"
+                  Command="{Binding EditRawConfigCommand}"
+                  IsVisible="{Binding IsRawConfigEditorEnabled}"
+                  IsEnabled="{Binding !ApplyInProgress}"
+                  Padding="10,4" FontSize="11"
+                  Background="Transparent" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
+                  CornerRadius="4" Foreground="{StaticResource WarningBrush}" Margin="0,0,8,0" />
+          <Button Grid.Column="6" Content="Apply"
                   Command="{Binding ApplyConfigCommand}"
                   IsEnabled="{Binding !ApplyInProgress}"
                   Padding="14,4" FontSize="11"
@@ -275,12 +282,40 @@
                    Foreground="White" />
       </Border>
 
-      <TextBlock Grid.Column="1"
-                 Text="{Binding SnapshotPath, StringFormat='Snapshot saved to {0}'}"
-                 IsVisible="{Binding SnapshotPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                 Foreground="{StaticResource TextSecondaryBrush}"
-                 FontSize="{StaticResource FontSizeSm}"
-                 VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1"
+                  Orientation="Horizontal"
+                  Spacing="6"
+                  IsVisible="{Binding SnapshotPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  VerticalAlignment="Center">
+        <TextBlock Text="{Binding [Snapshot.Saved], Source={x:Static svc:Localizer.Instance}}"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   FontSize="{StaticResource FontSizeSm}"
+                   VerticalAlignment="Center" />
+        <Button Content="{Binding [Snapshot.Open], Source={x:Static svc:Localizer.Instance}}"
+                Command="{Binding OpenSnapshotCommand}"
+                Background="Transparent"
+                BorderBrush="{StaticResource BorderMediumBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="10,4"
+                Foreground="{StaticResource TextPrimaryBrush}" />
+        <Button Content="{Binding [Snapshot.Copy], Source={x:Static svc:Localizer.Instance}}"
+                Command="{Binding CopySnapshotCommand}"
+                Background="Transparent"
+                BorderBrush="{StaticResource BorderMediumBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="10,4"
+                Foreground="{StaticResource TextPrimaryBrush}" />
+        <Button Content="{Binding [Snapshot.SaveAs], Source={x:Static svc:Localizer.Instance}}"
+                Command="{Binding SaveSnapshotAsCommand}"
+                Background="Transparent"
+                BorderBrush="{StaticResource BorderMediumBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="10,4"
+                Foreground="{StaticResource TextPrimaryBrush}" />
+      </StackPanel>
 
       <Button Grid.Column="2"
               Command="{Binding ToggleRecordingCommand}"

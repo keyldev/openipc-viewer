@@ -15,5 +15,12 @@ public interface IDialogService
 
     Task<string?> PickFolderAsync(string? title = null);
 
+    Task<string?> PickSaveFileAsync(string suggestedName, string title, string extension);
+
+    Task CopyFileToClipboardAsync(string path);
+
     Task ShowManageGroupsAsync(ManageGroupsViewModel viewModel);
+
+    // Returns the edited JSON if the user clicked Apply, null if cancelled.
+    Task<string?> ShowRawConfigEditorAsync(string initialJson);
 }

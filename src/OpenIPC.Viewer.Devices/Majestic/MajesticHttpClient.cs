@@ -103,6 +103,20 @@ public sealed class MajesticHttpClient : IMajesticClient, IDisposable
         await EnsureSuccessAsync(postResp, ct).ConfigureAwait(false);
     }
 
+    public async Task UpdateRawConfigAsync(MajesticEndpoint endpoint, string rawJson, CancellationToken ct)
+    {
+        // Cheap well-formedness check — Majestic's config endpoint accepts
+        // anything that parses but a typo (trailing comma, unclosed brace)
+        // can brick the camera, so we'd rather refuse early than POST garbage.
+        try { using var _ = JsonDocument.Parse(rawJson); }
+        catch (JsonException ex) { throw new ArgumentException("Invalid JSON: " + ex.Message, nameof(rawJson), ex); }
+
+        using var postReq = BuildRequest(endpoint, HttpMethod.Post, "api/v1/config.json");
+        postReq.Content = new StringContent(rawJson, Encoding.UTF8, "application/json");
+        using var postResp = await _http.SendAsync(postReq, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+        await EnsureSuccessAsync(postResp, ct).ConfigureAwait(false);
+    }
+
     public async Task SetNightModeAsync(MajesticEndpoint endpoint, NightMode mode, CancellationToken ct)
     {
         var path = mode switch

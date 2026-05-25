@@ -19,6 +19,12 @@ public interface IMajesticClient
     // changes — UI should be prepared to reconnect (LiveStreamCoordinator).
     Task UpdateConfigAsync(MajesticEndpoint endpoint, MajesticConfigPatch patch, CancellationToken ct);
 
+    // Posts user-edited raw JSON straight to /api/v1/config.json. Validates
+    // the body parses as JSON before sending — anything else is the caller's
+    // responsibility (e.g. dialog accepts only when JSON is well-formed).
+    // Throws ArgumentException if rawJson is not valid JSON.
+    Task UpdateRawConfigAsync(MajesticEndpoint endpoint, string rawJson, CancellationToken ct);
+
     Task SetNightModeAsync(MajesticEndpoint endpoint, NightMode mode, CancellationToken ct);
 
     // Returns the JPEG bytes from /image.jpg — caller decides where to write.

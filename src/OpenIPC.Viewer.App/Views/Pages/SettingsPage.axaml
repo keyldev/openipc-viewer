@@ -130,6 +130,10 @@
                   Content="{Binding [Settings.Advanced.VerboseLogging], Source={x:Static svc:Localizer.Instance}}"
                   Foreground="{StaticResource TextPrimaryBrush}" />
 
+        <CheckBox IsChecked="{Binding RawConfigEditorEnabled}"
+                  Content="{Binding [Settings.Advanced.RawConfigEditor], Source={x:Static svc:Localizer.Instance}}"
+                  Foreground="{StaticResource TextPrimaryBrush}" />
+
         <Button Content="{Binding [Settings.Advanced.OpenAppData], Source={x:Static svc:Localizer.Instance}}"
                 Command="{Binding OpenAppDataDirectoryCommand}"
                 Background="Transparent"

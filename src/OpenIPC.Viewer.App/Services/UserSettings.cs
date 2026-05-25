@@ -14,7 +14,10 @@ public sealed record UserSettings(
     string RecordingsDirOverride = "",
     // "system" follows CurrentUICulture; "en"/"ru" force a specific locale.
     string Language = "system",
-    bool WelcomeShown = false)
+    bool WelcomeShown = false,
+    // Unlocks the "Edit raw" button in the Phase 5 Majestic panel. Off by
+    // default — a typo here can leave the camera in a non-bootable state.
+    bool RawConfigEditorEnabled = false)
 {
     public static UserSettings Default => new();
 }

@@ -33,4 +33,17 @@
   <x:Double x:Key="FontSizeLg">18</x:Double>
   <x:Double x:Key="FontSizeXl">20</x:Double>
 
+  <!--
+    Nav icons (16x16 viewbox, Console variant — monochrome, no fill/stroke
+    flourish). PathIcon fills the geometry with its Foreground, so all
+    glyphs are designed as solid shapes the foreground brush can paint.
+  -->
+  <!-- IconLive — REC-style target: outer ring + center dot. EvenOdd fill on
+       StreamGeometry punches out the middle of the donut automatically. -->
+  <StreamGeometry x:Key="IconLive">M8,3 A5,5 0 1 1 8,13 A5,5 0 1 1 8,3 Z M8,5.5 A2.5,2.5 0 1 1 8,10.5 A2.5,2.5 0 1 1 8,5.5 Z M8,7 A1,1 0 1 1 8,9 A1,1 0 1 1 8,7 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconLibrary">M2,2 H7 V7 H2 Z M9,2 H14 V7 H9 Z M2,9 H7 V14 H2 Z M9,9 H14 V14 H9 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconRecordings">M8,3 A5,5 0 1 1 8,13 A5,5 0 1 1 8,3 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconEvents">M5,3 H11 V5 C11,7 12,9 12,10 H4 C4,9 5,7 5,5 Z M7,11 H9 V12.5 H7 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconSettings">M2,4 H14 V6 H2 Z M2,7 H14 V9 H2 Z M2,10 H14 V12 H2 Z</StreamGeometry>
+
 </ResourceDictionary>

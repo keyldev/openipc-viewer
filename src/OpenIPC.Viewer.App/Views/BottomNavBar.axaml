@@ -12,30 +12,50 @@
     <UniformGrid Rows="1" Columns="5">
 
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
-                   Content="Live"
                    IsChecked="{Binding IsLiveSelected, Mode=OneWay}"
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="live" />
+                   CommandParameter="live">
+        <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource IconLive}" Width="18" Height="18" HorizontalAlignment="Center" />
+          <TextBlock Text="Live" HorizontalAlignment="Center" />
+        </StackPanel>
+      </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
-                   Content="Library"
                    IsChecked="{Binding IsLibrarySelected, Mode=OneWay}"
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="library" />
+                   CommandParameter="library">
+        <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource IconLibrary}" Width="18" Height="18" HorizontalAlignment="Center" />
+          <TextBlock Text="Library" HorizontalAlignment="Center" />
+        </StackPanel>
+      </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
-                   Content="Records"
                    IsChecked="{Binding IsRecordingsSelected, Mode=OneWay}"
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="recordings" />
+                   CommandParameter="recordings">
+        <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource IconRecordings}" Width="18" Height="18" HorizontalAlignment="Center" />
+          <TextBlock Text="Records" HorizontalAlignment="Center" />
+        </StackPanel>
+      </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
-                   Content="Events"
                    IsChecked="{Binding IsEventsSelected, Mode=OneWay}"
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="events" />
+                   CommandParameter="events">
+        <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource IconEvents}" Width="18" Height="18" HorizontalAlignment="Center" />
+          <TextBlock Text="Events" HorizontalAlignment="Center" />
+        </StackPanel>
+      </RadioButton>
       <RadioButton Classes="bottomnav" GroupName="MobileNav"
-                   Content="Settings"
                    IsChecked="{Binding IsSettingsSelected, Mode=OneWay}"
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="settings" />
+                   CommandParameter="settings">
+        <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <PathIcon Data="{StaticResource IconSettings}" Width="18" Height="18" HorizontalAlignment="Center" />
+          <TextBlock Text="Settings" HorizontalAlignment="Center" />
+        </StackPanel>
+      </RadioButton>
 
     </UniformGrid>
 

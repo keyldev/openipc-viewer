@@ -38,30 +38,50 @@
 
           <StackPanel Spacing="2" VerticalAlignment="Top">
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
-                         Content="Live"
                          IsChecked="{Binding IsLiveSelected, Mode=OneWay}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="live" />
+                         CommandParameter="live">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconLive}" Width="16" Height="16" />
+                <TextBlock Text="Live" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
-                         Content="Library"
                          IsChecked="{Binding IsLibrarySelected, Mode=OneWay}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="library" />
+                         CommandParameter="library">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconLibrary}" Width="16" Height="16" />
+                <TextBlock Text="Library" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
-                         Content="Recordings"
                          IsChecked="{Binding IsRecordingsSelected, Mode=OneWay}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="recordings" />
+                         CommandParameter="recordings">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconRecordings}" Width="16" Height="16" />
+                <TextBlock Text="Recordings" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
-                         Content="Events"
                          IsChecked="{Binding IsEventsSelected, Mode=OneWay}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="events" />
+                         CommandParameter="events">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconEvents}" Width="16" Height="16" />
+                <TextBlock Text="Events" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
             <RadioButton Classes="sidebar" GroupName="DesktopNav"
-                         Content="Settings"
                          IsChecked="{Binding IsSettingsSelected, Mode=OneWay}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="settings" />
+                         CommandParameter="settings">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" />
+                <TextBlock Text="Settings" VerticalAlignment="Center" />
+              </StackPanel>
+            </RadioButton>
           </StackPanel>
 
         </DockPanel>

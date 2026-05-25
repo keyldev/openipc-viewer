@@ -1,6 +1,8 @@
 -- Phase 1 initial schema (architecture §7.1).
--- Recordings / Events / PtzPresets tables are created empty now to avoid
--- a later migration when their owning phases land (see phase-01 §1.2).
+-- PtzPresets stays empty for now (no later migration replaces it); the
+-- earlier Recordings/Events stubs that lived here were removed because
+-- Phase 6/7 redefine those tables with different shapes and the stubs
+-- collided at migration time. See 005_recordings.sql / 006_events.sql.
 
 CREATE TABLE Groups (
     Id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,29 +30,6 @@ CREATE TABLE Cameras (
     CreatedAt           TEXT    NOT NULL,
     UpdatedAt           TEXT    NOT NULL
 );
-
-CREATE TABLE Recordings (
-    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    CameraId    TEXT    NOT NULL REFERENCES Cameras(Id) ON DELETE CASCADE,
-    Path        TEXT    NOT NULL,
-    StartedAt   TEXT    NOT NULL,
-    EndedAt     TEXT,
-    SizeBytes   INTEGER,
-    Codec       TEXT,
-    HasMotion   INTEGER NOT NULL DEFAULT 0
-);
-CREATE INDEX idx_recordings_camera_started ON Recordings(CameraId, StartedAt);
-
-CREATE TABLE Events (
-    Id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    CameraId        TEXT    NOT NULL REFERENCES Cameras(Id) ON DELETE CASCADE,
-    Type            TEXT    NOT NULL,
-    OccurredAt      TEXT    NOT NULL,
-    Severity        TEXT    NOT NULL DEFAULT 'Info',
-    ThumbnailPath   TEXT,
-    Payload         TEXT
-);
-CREATE INDEX idx_events_camera_occurred ON Events(CameraId, OccurredAt);
 
 CREATE TABLE PtzPresets (
     Id                  INTEGER PRIMARY KEY AUTOINCREMENT,

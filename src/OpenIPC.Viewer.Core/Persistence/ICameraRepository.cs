@@ -11,5 +11,6 @@ public interface ICameraRepository
     Task<Camera?> GetAsync(CameraId id, CancellationToken ct);
     Task<CameraId> AddAsync(Camera camera, CancellationToken ct);
     Task UpdateAsync(Camera camera, CancellationToken ct);
+    Task UpdateSortOrdersAsync(IReadOnlyDictionary<CameraId, int> orders, CancellationToken ct);
     Task RemoveAsync(CameraId id, CancellationToken ct);
 }

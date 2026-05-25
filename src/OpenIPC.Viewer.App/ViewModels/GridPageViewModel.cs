@@ -126,6 +126,48 @@ public sealed partial class GridPageViewModel : ViewModelBase,
             Slots.Add(i < Tiles.Count ? Tiles[i] : null);
     }
 
+    // Drag-reorder hook called from GridPage code-behind. Both indices are in
+    // the *Tiles* collection (live cameras only — empty Slots placeholders are
+    // not draggable and can't be drop targets). Persists SortOrder = newIndex
+    // for the affected tiles; cameras outside the grid keep their existing
+    // SortOrder (so library ordering only shifts grid-included rows).
+    public async Task MoveTileAsync(int fromIndex, int toIndex, CancellationToken ct)
+    {
+        if (fromIndex < 0 || fromIndex >= Tiles.Count) return;
+        if (toIndex < 0 || toIndex >= Tiles.Count) return;
+        if (fromIndex == toIndex) return;
+
+        Tiles.Move(fromIndex, toIndex);
+
+        // Re-pad Slots so visual order matches the new Tiles order.
+        var visualCapacity = LayoutSize * LayoutSize;
+        Slots.Clear();
+        for (var i = 0; i < visualCapacity; i++)
+            Slots.Add(i < Tiles.Count ? Tiles[i] : null);
+
+        var orders = new Dictionary<CameraId, int>(Tiles.Count);
+        for (var i = 0; i < Tiles.Count; i++)
+            orders[Tiles[i].Camera.Id] = i;
+
+        try
+        {
+            await _directory.UpdateSortOrdersAsync(orders, ct).ConfigureAwait(true);
+
+            // Mirror persisted order in our in-memory snapshot so a settings
+            // hot-reload (which re-runs RefreshTilesAsync against _allCameras)
+            // keeps the user's choice instead of snapping back.
+            _allCameras = _allCameras
+                .Select(c => orders.TryGetValue(c.Id, out var so) ? c with { SortOrder = so } : c)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Persisting grid order failed");
+        }
+    }
+
     public async void Receive(WindowMinimizedMessage message)
     {
         _minimized = true;

@@ -91,6 +91,22 @@ public sealed class SqliteCameraRepository : ICameraRepository
             throw new InvalidOperationException($"Camera {camera.Id} not found");
     }
 
+    public async Task UpdateSortOrdersAsync(IReadOnlyDictionary<CameraId, int> orders, CancellationToken ct)
+    {
+        if (orders.Count == 0) return;
+        await using var conn = _factory.OpenConnection();
+        await using var tx = await conn.BeginTransactionAsync(ct).ConfigureAwait(false);
+        var ts = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+        foreach (var kv in orders)
+        {
+            await conn.ExecuteAsync(
+                "UPDATE Cameras SET SortOrder = @order, UpdatedAt = @ts WHERE Id = @id;",
+                new { order = kv.Value, ts, id = kv.Key.ToString() },
+                transaction: tx).ConfigureAwait(false);
+        }
+        await tx.CommitAsync(ct).ConfigureAwait(false);
+    }
+
     public async Task RemoveAsync(CameraId id, CancellationToken ct)
     {
         await using var conn = _factory.OpenConnection();

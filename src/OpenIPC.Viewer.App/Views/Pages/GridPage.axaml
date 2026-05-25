@@ -3,6 +3,7 @@
              xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
              xmlns:controls="using:OpenIPC.Viewer.App.Controls"
              xmlns:conv="using:OpenIPC.Viewer.App.Converters"
+             xmlns:input="using:Avalonia.Input"
              x:Class="OpenIPC.Viewer.App.Views.Pages.GridPage"
              x:DataType="vm:GridPageViewModel">
 
@@ -48,7 +49,9 @@
           <Border Margin="4"
                   Background="{StaticResource Bg0Brush}"
                   CornerRadius="6"
-                  ClipToBounds="True">
+                  ClipToBounds="True"
+                  input:DragDrop.AllowDrop="True"
+                  AttachedToVisualTree="OnSlotAttached">
             <Grid>
               <!-- Empty placeholder -->
               <Border IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNull}}"
@@ -67,7 +70,8 @@
                   <DataTemplate DataType="vm:CameraTileViewModel">
                     <Grid Cursor="Hand"
                           Background="Transparent"
-                          Tapped="OnTileTapped">
+                          Tapped="OnTileTapped"
+                          PointerPressed="OnTilePointerPressed">
                       <controls:RtspVideoView Session="{Binding Session}" />
 
                       <!-- Top-left: name -->

@@ -26,6 +26,16 @@ internal sealed class InMemoryCameraRepository : ICameraRepository
         return Task.CompletedTask;
     }
 
+    public Task UpdateSortOrdersAsync(IReadOnlyDictionary<CameraId, int> orders, CancellationToken ct)
+    {
+        foreach (var kv in orders)
+        {
+            if (_items.TryGetValue(kv.Key, out var existing))
+                _items[kv.Key] = existing with { SortOrder = kv.Value, UpdatedAt = DateTime.UtcNow };
+        }
+        return Task.CompletedTask;
+    }
+
     public Task RemoveAsync(CameraId id, CancellationToken ct)
     {
         _items.TryRemove(id, out _);

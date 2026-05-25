@@ -101,6 +101,9 @@ public sealed class CameraDirectoryService
         await _cameras.UpdateAsync(updated, ct).ConfigureAwait(false);
     }
 
+    public Task UpdateSortOrdersAsync(IReadOnlyDictionary<CameraId, int> orders, CancellationToken ct) =>
+        _cameras.UpdateSortOrdersAsync(orders, ct);
+
     public async Task SetIncludedInGridAsync(CameraId id, bool included, CancellationToken ct)
     {
         var existing = await _cameras.GetAsync(id, ct).ConfigureAwait(false)

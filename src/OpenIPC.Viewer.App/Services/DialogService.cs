@@ -19,6 +19,16 @@ public sealed class DialogService : IDialogService
         return await dlg.ShowDialog<CameraEditorResult?>(owner);
     }
 
+    public async Task<DiscoveryDialogResult?> ShowDiscoveryDialogAsync(DiscoveryDialogViewModel viewModel)
+    {
+        var owner = ResolveOwner();
+        if (owner is null)
+            return null;
+
+        var dlg = new DiscoveryDialogWindow { DataContext = viewModel };
+        return await dlg.ShowDialog<DiscoveryDialogResult?>(owner);
+    }
+
     public async Task<bool> ConfirmAsync(string title, string message, string confirmLabel = "Delete", string cancelLabel = "Cancel")
     {
         var owner = ResolveOwner();

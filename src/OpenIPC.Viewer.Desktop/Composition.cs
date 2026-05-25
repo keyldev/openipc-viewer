@@ -7,11 +7,13 @@ using OpenIPC.Viewer.App;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels;
 using OpenIPC.Viewer.Core.Onvif;
+using OpenIPC.Viewer.Core.Onvif.Discovery;
 using OpenIPC.Viewer.Core.Persistence;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
 using OpenIPC.Viewer.Core.Video;
 using OpenIPC.Viewer.Devices.Onvif;
+using OpenIPC.Viewer.Devices.Onvif.Discovery;
 using OpenIPC.Viewer.Infrastructure.Persistence;
 using OpenIPC.Viewer.Infrastructure.Secrets;
 using OpenIPC.Viewer.Video;
@@ -67,10 +69,14 @@ internal static class Composition
         services.AddSingleton<IOnvifClient, OnvifCoreClient>();
         services.AddSingleton<OnvifProbeService>();
 
+        // ONVIF discovery (Phase 4b). WS-Discovery only; mDNS is deferred.
+        services.AddSingleton<IDiscoveryService, WsDiscoveryService>();
+
         // UI services
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<SingleCameraPageFactory>();
         services.AddSingleton<CameraEditorFactory>();
+        services.AddSingleton<DiscoveryDialogFactory>();
 
         // ViewModels — singletons so navigation preserves their state across
         // sidebar switches and so messenger registrations stay alive.

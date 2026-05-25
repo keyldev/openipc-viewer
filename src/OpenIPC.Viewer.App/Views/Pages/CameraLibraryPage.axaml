@@ -13,13 +13,22 @@
                  FontWeight="SemiBold"
                  Foreground="{StaticResource TextPrimaryBrush}"
                  VerticalAlignment="Center" />
-      <Button Grid.Column="1"
-              Content="+ Add camera"
-              Command="{Binding AddCameraCommand}"
-              Padding="14,8"
-              Background="{StaticResource AccentBrush}"
-              Foreground="White"
-              CornerRadius="8" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <Button Content="🔍 Discover"
+                Command="{Binding DiscoverCameraCommand}"
+                Padding="14,8"
+                Background="Transparent"
+                BorderBrush="{StaticResource BorderMediumBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Foreground="{StaticResource TextPrimaryBrush}" />
+        <Button Content="+ Add camera"
+                Command="{Binding AddCameraCommand}"
+                Padding="14,8"
+                Background="{StaticResource AccentBrush}"
+                Foreground="White"
+                CornerRadius="8" />
+      </StackPanel>
     </Grid>
 
     <!-- Empty state -->

@@ -7,5 +7,7 @@ public interface IDialogService
 {
     Task<CameraEditorResult?> ShowCameraEditorAsync(CameraEditorViewModel viewModel);
 
+    Task<DiscoveryDialogResult?> ShowDiscoveryDialogAsync(DiscoveryDialogViewModel viewModel);
+
     Task<bool> ConfirmAsync(string title, string message, string confirmLabel = "Delete", string cancelLabel = "Cancel");
 }

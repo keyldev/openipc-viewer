@@ -19,6 +19,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
     private readonly CameraDirectoryService _directory;
     private readonly IDialogService _dialogs;
     private readonly CameraEditorFactory _editorFactory;
+    private readonly DiscoveryDialogFactory _discoveryFactory;
     private readonly ILogger<CameraLibraryPageViewModel> _logger;
 
     public string Title => "Cameras";
@@ -36,11 +37,13 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         CameraDirectoryService directory,
         IDialogService dialogs,
         CameraEditorFactory editorFactory,
+        DiscoveryDialogFactory discoveryFactory,
         ILogger<CameraLibraryPageViewModel> logger)
     {
         _directory = directory;
         _dialogs = dialogs;
         _editorFactory = editorFactory;
+        _discoveryFactory = discoveryFactory;
         _logger = logger;
         Cameras.CollectionChanged += (_, _) =>
         {
@@ -82,6 +85,40 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add camera {Name}", req.Name);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DiscoverCameraAsync()
+    {
+        var discoveryVm = _discoveryFactory.Create();
+        var found = await _dialogs.ShowDiscoveryDialogAsync(discoveryVm).ConfigureAwait(true);
+        if (found is null)
+            return;
+
+        // Pre-fill the editor from the probe result so the user sees / can tweak
+        // everything before saving (RTSP URI especially — phase-04 risks §"ONVIF
+        // returns wrong RTSP URI behind NAT" applies).
+        var editor = _editorFactory.CreateForNew();
+        editor.Name = found.Discovered.Model ?? found.Discovered.Name ?? found.Discovered.Host;
+        editor.Host = found.Discovered.Host;
+        editor.OnvifPortText = found.Discovered.OnvifPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        editor.RtspMainText = found.Probe.RtspMainUri.ToString();
+        editor.Username = found.Credentials?.Username ?? "";
+        editor.Password = found.Credentials?.Password ?? "";
+
+        var result = await _dialogs.ShowCameraEditorAsync(editor).ConfigureAwait(true);
+        if (result?.NewRequest is not { } req)
+            return;
+
+        try
+        {
+            await _directory.AddAsync(req, CancellationToken.None).ConfigureAwait(true);
+            await LoadAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add discovered camera {Host}", req.Host);
         }
     }
 

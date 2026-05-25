@@ -14,10 +14,39 @@ internal static class FfmpegRuntime
         if (Interlocked.CompareExchange(ref _initialized, 1, 0) != 0)
             return;
 
-        ffmpeg.RootPath = ResolveNativeDir();
-        // Touch one function to surface load errors early.
-        _ = ffmpeg.av_version_info();
-        ffmpeg.avformat_network_init();
+        var nativeDir = ResolveNativeDir();
+        ffmpeg.RootPath = nativeDir;
+
+        try
+        {
+            // Touch one function so the P/Invoke loader resolves the native
+            // libs early — anything missing surfaces here instead of mid-stream.
+            _ = ffmpeg.av_version_info();
+            ffmpeg.avformat_network_init();
+        }
+        catch (DllNotFoundException ex)
+        {
+            // Most-likely cause on Android: the APK shipped without FFmpeg
+            // shared libs because tools/build-ffmpeg-android.sh wasn't run for
+            // the device's ABI (arm64-v8a / x86_64). Re-throw with a hint so
+            // the failure reads as a setup problem, not a code bug.
+            var (rid, _) = RuntimeIds.Current();
+            var probe = string.IsNullOrEmpty(nativeDir)
+                ? "(loader path)"
+                : nativeDir;
+            throw new FfmpegNativeLibsMissingException(
+                $"FFmpeg native libraries are missing for runtime '{rid ?? "unknown"}'. " +
+                $"Probed: {probe}. " +
+                $"Build them with tools/build-ffmpeg-android.sh (Android) or install " +
+                $"ffmpeg via apt/brew/winget (Desktop). Inner: {ex.Message}", ex);
+        }
+        catch (TypeInitializationException ex) when (ex.InnerException is DllNotFoundException dll)
+        {
+            var (rid, _) = RuntimeIds.Current();
+            throw new FfmpegNativeLibsMissingException(
+                $"FFmpeg native libraries are missing for runtime '{rid ?? "unknown"}'. " +
+                $"Inner: {dll.Message}", ex);
+        }
     }
 
     private static string ResolveNativeDir()
@@ -32,7 +61,14 @@ internal static class FfmpegRuntime
         }
 
         // Fall back to "" — FFmpeg.AutoGen then uses the platform loader path
-        // (apt/brew-installed libs on Linux/macOS, DLLs next to the exe on Windows).
+        // (apt/brew-installed libs on Linux/macOS, DLLs next to the exe on Windows,
+        // and the bundled .so files added via <AndroidNativeLibrary> on Android).
         return "";
     }
+}
+
+public sealed class FfmpegNativeLibsMissingException : Exception
+{
+    public FfmpegNativeLibsMissingException(string message, Exception inner)
+        : base(message, inner) { }
 }

@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ae="using:AvaloniaEdit"
         xmlns:svc="using:OpenIPC.Viewer.App.Services"
         x:Class="OpenIPC.Viewer.App.Views.Dialogs.RawConfigEditorDialog"
         Title="{Binding [RawConfigEditor.Title], Source={x:Static svc:Localizer.Instance}}"
@@ -22,19 +23,14 @@
             Background="{StaticResource Bg0Brush}"
             BorderBrush="{StaticResource BorderWeakBrush}"
             BorderThickness="1"
-            CornerRadius="4"
-            Padding="2">
-      <TextBox Name="Editor"
-               AcceptsReturn="True"
-               AcceptsTab="True"
-               TextWrapping="NoWrap"
-               FontFamily="{StaticResource FontMono}"
-               FontSize="12"
-               Background="Transparent"
-               BorderThickness="0"
-               Foreground="{StaticResource TextPrimaryBrush}"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-               ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            CornerRadius="4">
+      <ae:TextEditor Name="Editor"
+                     ShowLineNumbers="True"
+                     WordWrap="False"
+                     FontFamily="{StaticResource FontMono}"
+                     FontSize="12"
+                     Background="Transparent"
+                     Foreground="{StaticResource TextPrimaryBrush}" />
     </Border>
 
     <TextBlock Grid.Row="2"

@@ -63,6 +63,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     [ObservableProperty] private int? _draftFps;
     [ObservableProperty] private int? _draftBitrate;
     [ObservableProperty] private string? _draftProfile;
+    [ObservableProperty] private bool? _draftRtmpEnabled;
+    [ObservableProperty] private string? _draftRtmpUrl;
     [ObservableProperty] private bool _applyInProgress;
     [ObservableProperty] private string? _applyStatus;
     [ObservableProperty] private bool _showRawJson;
@@ -325,6 +327,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         DraftFps = MajesticConfig.Fps;
         DraftBitrate = MajesticConfig.Bitrate;
         DraftProfile = MajesticConfig.Profile;
+        DraftRtmpEnabled = MajesticConfig.RtmpEnabled;
+        DraftRtmpUrl = MajesticConfig.RtmpUrl;
     }
 
     [RelayCommand]
@@ -341,7 +345,9 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
                 Fps: DraftFps != MajesticConfig.Fps ? DraftFps : null,
                 Resolution: DraftResolution != MajesticConfig.Resolution ? DraftResolution : null,
                 Bitrate: DraftBitrate != MajesticConfig.Bitrate ? DraftBitrate : null,
-                Profile: DraftProfile != MajesticConfig.Profile ? DraftProfile : null);
+                Profile: DraftProfile != MajesticConfig.Profile ? DraftProfile : null,
+                RtmpEnabled: DraftRtmpEnabled != MajesticConfig.RtmpEnabled ? DraftRtmpEnabled : null,
+                RtmpUrl: DraftRtmpUrl != MajesticConfig.RtmpUrl ? DraftRtmpUrl : null);
 
             var creds = await _directory.GetCredentialsAsync(_camera.Id, CancellationToken.None).ConfigureAwait(true);
             var endpoint = new MajesticEndpoint(_camera.Host, _camera.HttpPort, creds);

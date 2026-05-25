@@ -13,4 +13,6 @@ public sealed record MajesticConfig(
     string? Resolution,
     int? Bitrate,
     string? Profile,
-    NightMode NightMode);
+    NightMode NightMode,
+    bool? RtmpEnabled = null,
+    string? RtmpUrl = null);

@@ -202,6 +202,22 @@
           <ComboBox Grid.Column="9" ItemsSource="{Binding ProfileOptions}" SelectedItem="{Binding DraftProfile, Mode=TwoWay}" MinWidth="100" />
         </Grid>
 
+        <!-- RTMP push (Phase 11.7): checkbox + URL. Empty URL with toggle on
+             is intentionally allowed — Majestic accepts it as "off". -->
+        <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,0,0,0">
+          <CheckBox Grid.Column="0"
+                    IsChecked="{Binding DraftRtmpEnabled, Mode=TwoWay}"
+                    Content="{Binding [CameraPage.Rtmp.Toggle], Source={x:Static svc:Localizer.Instance}}"
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    Margin="0,0,10,0" />
+          <TextBox Grid.Column="2"
+                   Text="{Binding DraftRtmpUrl, Mode=TwoWay}"
+                   PlaceholderText="{Binding [CameraPage.Rtmp.UrlPlaceholder], Source={x:Static svc:Localizer.Instance}}"
+                   FontFamily="{StaticResource FontMono}"
+                   FontSize="11" />
+        </Grid>
+
         <!-- Action row: night mode + apply + view raw + edit raw -->
         <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
           <Button Grid.Column="0" Content="Day" Command="{Binding SetNightModeCommand}" CommandParameter="day"

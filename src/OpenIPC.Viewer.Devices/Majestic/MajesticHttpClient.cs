@@ -96,6 +96,20 @@ public sealed class MajesticHttpClient : IMajesticClient, IDisposable
             if (patch.Profile is { } prof) video["profile"] = prof;
         }
 
+        // Majestic exposes RTMP push under root.rtmp = { enabled, url }. Some
+        // builds ship without the section at all — create the object on first
+        // write so a user can flip it on from a fresh config.
+        if (patch.RtmpEnabled is not null || patch.RtmpUrl is not null)
+        {
+            if (root["rtmp"] is not JsonObject rtmp)
+            {
+                rtmp = new JsonObject();
+                root["rtmp"] = rtmp;
+            }
+            if (patch.RtmpEnabled is { } en) rtmp["enabled"] = en;
+            if (patch.RtmpUrl is { } url) rtmp["url"] = url;
+        }
+
         var body = root.ToJsonString();
         using var postReq = BuildRequest(endpoint, HttpMethod.Post, "api/v1/config.json");
         postReq.Content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -177,6 +191,7 @@ public sealed class MajesticHttpClient : IMajesticClient, IDisposable
         // edits are deferred to phase-05c.
         var video = TryGetObject(root, "video0") ?? TryGetObject(root, "video");
         var isp = TryGetObject(root, "isp");
+        var rtmp = TryGetObject(root, "rtmp");
 
         var nightMode = NightMode.Unknown;
         var ircut = isp is { } i ? TryGetString(i, "ircut") : null;
@@ -194,7 +209,9 @@ public sealed class MajesticHttpClient : IMajesticClient, IDisposable
             Resolution: video is { } v3 ? TryGetString(v3, "size") : null,
             Bitrate: video is { } v4 ? TryGetInt(v4, "bitrate") : null,
             Profile: video is { } v5 ? TryGetString(v5, "profile") : null,
-            NightMode: nightMode);
+            NightMode: nightMode,
+            RtmpEnabled: rtmp is { } r1 ? TryGetBool(r1, "enabled") : null,
+            RtmpUrl: rtmp is { } r2 ? TryGetString(r2, "url") : null);
     }
 
     private static JsonElement? TryGetObject(JsonElement el, string name) =>
@@ -211,6 +228,17 @@ public sealed class MajesticHttpClient : IMajesticClient, IDisposable
     {
         if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(name, out var v)) return null;
         return v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var i) ? i : null;
+    }
+
+    private static bool? TryGetBool(JsonElement el, string name)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(name, out var v)) return null;
+        return v.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => null,
+        };
     }
 
     public void Dispose() => _http.Dispose();

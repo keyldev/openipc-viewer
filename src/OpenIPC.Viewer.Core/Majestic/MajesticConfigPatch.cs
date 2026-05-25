@@ -8,4 +8,6 @@ public sealed record MajesticConfigPatch(
     int? Fps = null,
     string? Resolution = null,
     int? Bitrate = null,
-    string? Profile = null);
+    string? Profile = null,
+    bool? RtmpEnabled = null,
+    string? RtmpUrl = null);

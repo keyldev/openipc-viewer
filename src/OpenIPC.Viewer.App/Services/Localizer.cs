@@ -173,6 +173,9 @@ public sealed class Localizer : INotifyPropertyChanged
         ["RawConfigEditor.Title"] = "Edit raw Majestic config",
         ["RawConfigEditor.InvalidJsonFormat"] = "Invalid JSON: {0}",
 
+        ["CameraPage.Rtmp.Toggle"] = "RTMP push",
+        ["CameraPage.Rtmp.UrlPlaceholder"] = "rtmp://server/stream-key",
+
         ["Recordings.Dialog.DeleteTitle"] = "Delete recording",
         ["Recordings.Dialog.DeleteMessageFormat"] = "Delete {0}? The MP4 file will be removed.",
         ["Recordings.Empty"] = "No recordings yet. Hit ● REC on a camera page to start.",
@@ -314,6 +317,9 @@ public sealed class Localizer : INotifyPropertyChanged
 
         ["RawConfigEditor.Title"] = "Правка raw-конфига Majestic",
         ["RawConfigEditor.InvalidJsonFormat"] = "Невалидный JSON: {0}",
+
+        ["CameraPage.Rtmp.Toggle"] = "RTMP-push",
+        ["CameraPage.Rtmp.UrlPlaceholder"] = "rtmp://сервер/stream-key",
 
         ["Recordings.Dialog.DeleteTitle"] = "Удалить запись",
         ["Recordings.Dialog.DeleteMessageFormat"] = "Удалить {0}? MP4-файл будет удалён.",

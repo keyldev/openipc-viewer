@@ -20,4 +20,10 @@
     <ProjectReference Include="..\OpenIPC.Viewer.Core\OpenIPC.Viewer.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Brand assets embedded as Avalonia resources so they're addressable
+         via avares:// URIs from XAML (Window.Icon, Image.Source, etc). -->
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
 </Project>

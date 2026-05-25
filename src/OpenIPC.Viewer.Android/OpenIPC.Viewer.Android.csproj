@@ -55,6 +55,7 @@
 
   <ItemGroup>
     <AndroidResource Include="Resources\**\*.xml" />
+    <AndroidResource Include="Resources\**\*.png" />
   </ItemGroup>
 
   <!--

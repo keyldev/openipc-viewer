@@ -12,6 +12,7 @@ namespace OpenIPC.Viewer.Android;
 [Activity(
     Label = "OpenIPC Viewer",
     Theme = "@style/MyTheme.NoActionBar",
+    Icon = "@mipmap/icon",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize
                           | ConfigChanges.UiMode | ConfigChanges.Density)]

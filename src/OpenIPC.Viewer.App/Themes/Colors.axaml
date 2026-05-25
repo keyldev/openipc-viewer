@@ -2,9 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!--
-    Console palette — source: openipc-viewer-design-system-ru.md §3.1
-    Brand blues — approximate, from §1.1; replace with exact hex once
-    openipc-logo-*.svg lands in repo.
+    Console palette — source: openipc-viewer-design-system-ru.md §3.1.
+    Brand blues sampled from openipc-logo.png (indigo/periwinkle, not the
+    earlier material-blue placeholder). Primary = the square background;
+    Light/Dark/Deep derived around it on the same hue.
   -->
 
   <!-- Surfaces -->
@@ -22,17 +23,17 @@
   <Color x:Key="TextSecondary">#8b95a3</Color>
   <Color x:Key="TextTertiary">#5e6878</Color>
 
-  <!-- Brand (approximate — TODO: extract from openipc-logo-*.svg) -->
-  <Color x:Key="BrandBluePrimary">#2196F3</Color>
-  <Color x:Key="BrandBlueLight">#64B5F6</Color>
-  <Color x:Key="BrandBlueDark">#0D4373</Color>
-  <Color x:Key="BrandBlueDeep">#0F2745</Color>
-  <Color x:Key="BrandBlueContrast">#04284D</Color>
+  <!-- Brand (sampled from openipc-logo.png — indigo, not material blue) -->
+  <Color x:Key="BrandBluePrimary">#5B6CD9</Color>
+  <Color x:Key="BrandBlueLight">#7E8DE8</Color>
+  <Color x:Key="BrandBlueDark">#3D4DB8</Color>
+  <Color x:Key="BrandBlueDeep">#1C2658</Color>
+  <Color x:Key="BrandBlueContrast">#141B40</Color>
 
   <!-- Accent & tint -->
-  <Color x:Key="Accent">#2196F3</Color>
-  <Color x:Key="AccentHover">#64B5F6</Color>
-  <Color x:Key="AccentTint">#0F2745</Color>
+  <Color x:Key="Accent">#5B6CD9</Color>
+  <Color x:Key="AccentHover">#7E8DE8</Color>
+  <Color x:Key="AccentTint">#1C2658</Color>
 
   <!-- Semantic -->
   <Color x:Key="Danger">#ef4444</Color>

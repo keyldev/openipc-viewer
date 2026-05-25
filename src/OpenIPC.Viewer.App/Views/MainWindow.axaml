@@ -5,6 +5,7 @@
         x:Class="OpenIPC.Viewer.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="OpenIPC Viewer"
+        Icon="/Assets/openipc-logo.png"
         Width="1200" Height="780"
         MinWidth="900" MinHeight="600"
         Background="{StaticResource Bg1Brush}">

@@ -31,6 +31,12 @@ internal static class Program
                 .MigrateAsync(CancellationToken.None)
                 .GetAwaiter().GetResult();
 
+            // Phase 7: hot ingestion service. Has to be started before the UI
+            // opens so cameras already in the DB get their watchers wired up.
+            services.GetRequiredService<OpenIPC.Viewer.Core.Events.EventIngestionService>()
+                .StartAsync(CancellationToken.None)
+                .GetAwaiter().GetResult();
+
             return BuildAvaloniaApp(services)
                 .StartWithClassicDesktopLifetime(args);
         }

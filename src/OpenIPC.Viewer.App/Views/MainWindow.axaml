@@ -44,6 +44,11 @@
                        Command="{Binding NavigateCommand}"
                        CommandParameter="recordings" />
           <RadioButton Classes="sidebar" GroupName="Nav"
+                       Content="Events"
+                       IsChecked="{Binding IsEventsSelected, Mode=OneWay}"
+                       Command="{Binding NavigateCommand}"
+                       CommandParameter="events" />
+          <RadioButton Classes="sidebar" GroupName="Nav"
                        Content="Settings"
                        IsChecked="{Binding IsSettingsSelected, Mode=OneWay}"
                        Command="{Binding NavigateCommand}"

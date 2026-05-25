@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.App;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels;
+using OpenIPC.Viewer.Core.Events;
 using OpenIPC.Viewer.Core.Majestic;
 using OpenIPC.Viewer.Core.Onvif;
 using OpenIPC.Viewer.Core.Onvif.Discovery;
@@ -62,6 +63,7 @@ internal static class Composition
         services.AddSingleton<ICameraRepository, SqliteCameraRepository>();
         services.AddSingleton<IGroupRepository, SqliteGroupRepository>();
         services.AddSingleton<IRecordingRepository, SqliteRecordingRepository>();
+        services.AddSingleton<IEventRepository, SqliteEventRepository>();
 
         // Domain services
         services.AddSingleton<CameraDirectoryService>();
@@ -90,6 +92,13 @@ internal static class Composition
         });
         services.AddSingleton<RecordingService>();
 
+        // Events (Phase 7). Real per-protocol sources land later; ManualMotionEventSource
+        // is the only registered source for now so the ingestion path can be exercised
+        // end-to-end via the "Simulate motion" button on the Events page.
+        services.AddSingleton<ManualMotionEventSource>();
+        services.AddSingleton<IMotionEventSource>(sp => sp.GetRequiredService<ManualMotionEventSource>());
+        services.AddSingleton<EventIngestionService>();
+
         // UI services
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<SingleCameraPageFactory>();
@@ -102,6 +111,7 @@ internal static class Composition
         services.AddSingleton<GridPageViewModel>();
         services.AddSingleton<CameraLibraryPageViewModel>();
         services.AddSingleton<RecordingsPageViewModel>();
+        services.AddSingleton<EventsPageViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
 
         return services.BuildServiceProvider(validateScopes: true);

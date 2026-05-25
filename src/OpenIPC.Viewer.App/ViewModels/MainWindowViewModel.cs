@@ -22,24 +22,28 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IRecipient<Open
     public GridPageViewModel Live { get; }
     public CameraLibraryPageViewModel Library { get; }
     public RecordingsPageViewModel Recordings { get; }
+    public EventsPageViewModel Events { get; }
     public SettingsPageViewModel Settings { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLiveSelected))]
     [NotifyPropertyChangedFor(nameof(IsLibrarySelected))]
     [NotifyPropertyChangedFor(nameof(IsRecordingsSelected))]
+    [NotifyPropertyChangedFor(nameof(IsEventsSelected))]
     [NotifyPropertyChangedFor(nameof(IsSettingsSelected))]
     private ViewModelBase _currentPage;
 
     public bool IsLiveSelected => CurrentPage is GridPageViewModel;
     public bool IsLibrarySelected => CurrentPage is CameraLibraryPageViewModel or SingleCameraPageViewModel;
     public bool IsRecordingsSelected => CurrentPage is RecordingsPageViewModel;
+    public bool IsEventsSelected => CurrentPage is EventsPageViewModel;
     public bool IsSettingsSelected => CurrentPage is SettingsPageViewModel;
 
     public MainWindowViewModel(
         GridPageViewModel live,
         CameraLibraryPageViewModel library,
         RecordingsPageViewModel recordings,
+        EventsPageViewModel events,
         SettingsPageViewModel settings,
         CameraDirectoryService directory,
         SingleCameraPageFactory singleCameraFactory,
@@ -48,6 +52,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IRecipient<Open
         Live = live;
         Library = library;
         Recordings = recordings;
+        Events = events;
         Settings = settings;
         _directory = directory;
         _singleCameraFactory = singleCameraFactory;
@@ -69,6 +74,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IRecipient<Open
             "live" => Live,
             "library" => Library,
             "recordings" => Recordings,
+            "events" => Events,
             "settings" => Settings,
             _ => CurrentPage,
         };

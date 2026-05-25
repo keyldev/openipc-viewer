@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
+             x:Class="OpenIPC.Viewer.App.Views.Pages.EventsPage"
+             x:DataType="vm:EventsPageViewModel">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Header -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+      <TextBlock Grid.Column="0"
+                 Text="{Binding Title}"
+                 FontSize="{StaticResource FontSizeXl}"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource TextPrimaryBrush}"
+                 VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1"
+                ItemsSource="{Binding CameraOptions}"
+                SelectedItem="{Binding SelectedCamera, Mode=TwoWay}"
+                MinWidth="160" Margin="0,0,8,0" />
+      <Button Grid.Column="2"
+              Content="Simulate motion"
+              Command="{Binding SimulateMotionCommand}"
+              Padding="12,6"
+              Background="Transparent"
+              BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Foreground="{StaticResource TextPrimaryBrush}" />
+    </Grid>
+
+    <!-- Empty -->
+    <TextBlock Grid.Row="1"
+               IsVisible="{Binding IsEmpty}"
+               Text="No events yet. Hit Simulate motion to push one through the pipeline."
+               Foreground="{StaticResource TextSecondaryBrush}"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center" />
+
+    <!-- List -->
+    <ScrollViewer Grid.Row="1" IsVisible="{Binding !IsEmpty}">
+      <ItemsControl ItemsSource="{Binding Items}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="6" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:EventRowViewModel">
+            <Border Background="{StaticResource Bg2Brush}"
+                    BorderBrush="{StaticResource BorderWeakBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,8">
+              <Grid ColumnDefinitions="120,*,Auto,Auto,Auto">
+
+                <Border Grid.Column="0"
+                        Background="{StaticResource WarningBrush}"
+                        CornerRadius="3"
+                        Padding="6,2"
+                        HorizontalAlignment="Left">
+                  <TextBlock Text="{Binding KindLabel}"
+                             FontFamily="{StaticResource FontMono}"
+                             FontSize="10"
+                             Foreground="White" />
+                </Border>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding CameraName}"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center"
+                           Margin="12,0,0,0" />
+
+                <TextBlock Grid.Column="2"
+                           Text="{Binding Source}"
+                           FontFamily="{StaticResource FontMono}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,16,0" />
+
+                <TextBlock Grid.Column="3"
+                           Text="{Binding Duration}"
+                           FontFamily="{StaticResource FontMono}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,16,0"
+                           MinWidth="40" />
+
+                <TextBlock Grid.Column="4"
+                           Text="{Binding OccurredAtLocal, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                           FontFamily="{StaticResource FontMono}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </Grid>
+
+</UserControl>

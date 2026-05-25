@@ -17,7 +17,6 @@
                android:icon="@mipmap/icon"
                android:roundIcon="@mipmap/icon"
                android:allowBackup="true"
-               android:supportsRtl="true"
-               android:name=".MainApplication">
+               android:supportsRtl="true">
   </application>
 </manifest>

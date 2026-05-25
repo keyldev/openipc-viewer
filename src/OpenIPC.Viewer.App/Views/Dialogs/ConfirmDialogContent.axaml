@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="OpenIPC.Viewer.App.Views.Dialogs.ConfirmDialogContent"
-             Width="420" MinHeight="180"
+             MaxWidth="420" MinHeight="180" MinWidth="280"
              Background="{StaticResource Bg1Brush}"
              FontFamily="{StaticResource FontSans}"
              FontSize="{StaticResource FontSizeBase}"

@@ -1,67 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ae="using:AvaloniaEdit"
         xmlns:svc="using:OpenIPC.Viewer.App.Services"
+        xmlns:dialogs="using:OpenIPC.Viewer.App.Views.Dialogs"
         x:Class="OpenIPC.Viewer.App.Views.Dialogs.RawConfigEditorDialog"
         Title="{Binding [RawConfigEditor.Title], Source={x:Static svc:Localizer.Instance}}"
         Width="780" Height="560"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource Bg1Brush}"
-        FontFamily="{StaticResource FontSans}"
-        FontSize="{StaticResource FontSizeBase}"
-        Foreground="{StaticResource TextPrimaryBrush}">
+        Background="{StaticResource Bg1Brush}">
 
-  <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="20">
-
-    <TextBlock Grid.Row="0"
-               Text="{Binding [RawConfigEditor.Title], Source={x:Static svc:Localizer.Instance}}"
-               FontSize="{StaticResource FontSizeLg}"
-               FontWeight="SemiBold"
-               Margin="0,0,0,8" />
-
-    <Border Grid.Row="1"
-            Background="{StaticResource Bg0Brush}"
-            BorderBrush="{StaticResource BorderWeakBrush}"
-            BorderThickness="1"
-            CornerRadius="4">
-      <ae:TextEditor Name="Editor"
-                     ShowLineNumbers="True"
-                     WordWrap="False"
-                     FontFamily="{StaticResource FontMono}"
-                     FontSize="12"
-                     Background="Transparent"
-                     Foreground="{StaticResource TextPrimaryBrush}" />
-    </Border>
-
-    <TextBlock Grid.Row="2"
-               Name="ErrorBlock"
-               Foreground="{StaticResource DangerBrush}"
-               FontSize="{StaticResource FontSizeSm}"
-               Margin="0,8,0,0"
-               IsVisible="False"
-               TextWrapping="Wrap" />
-
-    <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
-      <Button Grid.Column="1"
-              Name="CancelButton"
-              Content="{Binding [Common.Cancel], Source={x:Static svc:Localizer.Instance}}"
-              Padding="14,8"
-              Background="Transparent"
-              BorderBrush="{StaticResource BorderMediumBrush}"
-              BorderThickness="1"
-              CornerRadius="6"
-              Foreground="{StaticResource TextPrimaryBrush}"
-              Margin="0,0,8,0" />
-      <Button Grid.Column="2"
-              Name="ApplyButton"
-              Content="{Binding [Common.Apply], Source={x:Static svc:Localizer.Instance}}"
-              Padding="14,8"
-              Background="{StaticResource AccentBrush}"
-              Foreground="White"
-              CornerRadius="6"
-              IsDefault="True" />
-    </Grid>
-
-  </Grid>
+  <dialogs:RawConfigEditorContent Name="InnerContent" />
 
 </Window>

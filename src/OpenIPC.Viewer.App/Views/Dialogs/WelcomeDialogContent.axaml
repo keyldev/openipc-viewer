@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
+             x:Class="OpenIPC.Viewer.App.Views.Dialogs.WelcomeDialogContent"
+             MaxWidth="480"
+             Background="{StaticResource Bg1Brush}"
+             FontFamily="{StaticResource FontSans}"
+             FontSize="{StaticResource FontSizeBase}"
+             Foreground="{StaticResource TextPrimaryBrush}">
+
+  <StackPanel Spacing="16" Margin="32" VerticalAlignment="Center">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <Image Source="/Assets/openipc-logo.png" Width="40" Height="40" />
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="{Binding [Welcome.Title], Source={x:Static svc:Localizer.Instance}}"
+                   FontSize="{StaticResource FontSizeLg}"
+                   FontWeight="SemiBold" />
+        <TextBlock Text="{Binding [Welcome.Tagline], Source={x:Static svc:Localizer.Instance}}"
+                   FontSize="{StaticResource FontSizeSm}"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+      </StackPanel>
+    </StackPanel>
+
+    <TextBlock Text="{Binding [Welcome.Lead], Source={x:Static svc:Localizer.Instance}}"
+               Foreground="{StaticResource TextSecondaryBrush}"
+               Margin="0,8,0,0" />
+
+    <Button Name="DiscoverButton"
+            Content="{Binding [Welcome.Discover], Source={x:Static svc:Localizer.Instance}}"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="{StaticResource AccentBrush}"
+            Foreground="White"
+            CornerRadius="8" />
+
+    <Button Name="ScanQrButton"
+            Content="{Binding [Welcome.ScanQr], Source={x:Static svc:Localizer.Instance}}"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="Transparent"
+            BorderBrush="{StaticResource BorderMediumBrush}"
+            BorderThickness="1"
+            CornerRadius="8" />
+
+    <Button Name="AddManuallyButton"
+            Content="{Binding [Welcome.AddManually], Source={x:Static svc:Localizer.Instance}}"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="Transparent"
+            BorderBrush="{StaticResource BorderMediumBrush}"
+            BorderThickness="1"
+            CornerRadius="8" />
+
+    <Button Name="SkipButton"
+            Content="{Binding [Welcome.Skip], Source={x:Static svc:Localizer.Instance}}"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left"
+            Padding="14,12"
+            Background="Transparent"
+            Foreground="{StaticResource TextSecondaryBrush}"
+            BorderThickness="0" />
+
+  </StackPanel>
+
+</UserControl>

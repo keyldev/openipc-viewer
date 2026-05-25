@@ -6,15 +6,14 @@
              x:DataType="vm:CameraLibraryPageViewModel">
   <Grid RowDefinitions="Auto,*">
 
-    <!-- Header -->
-    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,24">
-      <TextBlock Grid.Column="0"
-                 Text="{Binding [Library.Title], Source={x:Static svc:Localizer.Instance}}"
+    <!-- Header. Title on top, actions wrap below so a narrow viewport (phone
+         or pinned-narrow desktop) doesn't shove buttons off-screen. -->
+    <StackPanel Grid.Row="0" Spacing="12" Margin="0,0,0,16">
+      <TextBlock Text="{Binding [Library.Title], Source={x:Static svc:Localizer.Instance}}"
                  FontSize="{StaticResource FontSizeXl}"
                  FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"
-                 VerticalAlignment="Center" />
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                 Foreground="{StaticResource TextPrimaryBrush}" />
+      <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
         <ComboBox ItemsSource="{Binding AvailableGroups}"
                   SelectedItem="{Binding SelectedGroupFilter, Mode=TwoWay}"
                   MinWidth="160"
@@ -63,8 +62,8 @@
                 Background="{StaticResource AccentBrush}"
                 Foreground="White"
                 CornerRadius="8" />
-      </StackPanel>
-    </Grid>
+      </WrapPanel>
+    </StackPanel>
 
     <!-- Empty state -->
     <StackPanel Grid.Row="1"

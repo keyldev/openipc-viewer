@@ -28,14 +28,18 @@ public sealed class DialogService : IDialogService
         return dlg.ShowDialog<CameraEditorResult?>(owner);
     }
 
-    public async Task<DiscoveryDialogResult?> ShowDiscoveryDialogAsync(DiscoveryDialogViewModel viewModel)
+    public Task<DiscoveryDialogResult?> ShowDiscoveryDialogAsync(DiscoveryDialogViewModel viewModel)
     {
-        var owner = ResolveOwner();
-        if (owner is null)
-            return null;
+        if (OverlayDialogPresenter.IsMobile)
+        {
+            var content = new DiscoveryDialogContent { DataContext = viewModel };
+            return OverlayDialogPresenter.ShowAsync(content, content.Completion);
+        }
 
+        var owner = ResolveOwner();
+        if (owner is null) return Task.FromResult<DiscoveryDialogResult?>(null);
         var dlg = new DiscoveryDialogWindow { DataContext = viewModel };
-        return await dlg.ShowDialog<DiscoveryDialogResult?>(owner);
+        return dlg.ShowDialog<DiscoveryDialogResult?>(owner);
     }
 
     public async Task<bool> ConfirmAsync(string title, string message, string confirmLabel = "Delete", string cancelLabel = "Cancel")
@@ -57,14 +61,18 @@ public sealed class DialogService : IDialogService
         return result == true;
     }
 
-    public async Task<WelcomeResult> ShowWelcomeAsync()
+    public Task<WelcomeResult> ShowWelcomeAsync()
     {
-        var owner = ResolveOwner();
-        if (owner is null)
-            return WelcomeResult.Skip;
+        if (OverlayDialogPresenter.IsMobile)
+        {
+            var content = new WelcomeDialogContent();
+            return OverlayDialogPresenter.ShowAsync(content, content.Completion);
+        }
 
+        var owner = ResolveOwner();
+        if (owner is null) return Task.FromResult(WelcomeResult.Skip);
         var dlg = new WelcomeDialog();
-        return await dlg.ShowDialog<WelcomeResult>(owner);
+        return dlg.ShowDialog<WelcomeResult>(owner);
     }
 
     public async Task<string?> PickFolderAsync(string? title = null)
@@ -144,19 +152,33 @@ public sealed class DialogService : IDialogService
 
     public async Task ShowManageGroupsAsync(ManageGroupsViewModel viewModel)
     {
+        if (OverlayDialogPresenter.IsMobile)
+        {
+            var content = new ManageGroupsContent { DataContext = viewModel };
+            await OverlayDialogPresenter.ShowAsync(content, content.Completion).ConfigureAwait(true);
+            return;
+        }
+
         var owner = ResolveOwner();
         if (owner is null) return;
         var dlg = new ManageGroupsDialog { DataContext = viewModel };
         await dlg.ShowDialog(owner);
     }
 
-    public async Task<string?> ShowRawConfigEditorAsync(string initialJson)
+    public Task<string?> ShowRawConfigEditorAsync(string initialJson)
     {
+        if (OverlayDialogPresenter.IsMobile)
+        {
+            var content = new RawConfigEditorContent();
+            content.SetInitialText(initialJson);
+            return OverlayDialogPresenter.ShowAsync(content, content.Completion);
+        }
+
         var owner = ResolveOwner();
-        if (owner is null) return null;
+        if (owner is null) return Task.FromResult<string?>(null);
         var dlg = new RawConfigEditorDialog();
         dlg.SetInitialText(initialJson);
-        return await dlg.ShowDialog<string?>(owner);
+        return dlg.ShowDialog<string?>(owner);
     }
 
     private static Window? ResolveOwner() =>

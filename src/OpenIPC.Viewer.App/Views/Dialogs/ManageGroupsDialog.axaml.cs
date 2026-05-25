@@ -1,6 +1,5 @@
-using System.Threading;
 using Avalonia.Controls;
-using OpenIPC.Viewer.App.ViewModels.Dialogs;
+using Avalonia.Threading;
 
 namespace OpenIPC.Viewer.App.Views.Dialogs;
 
@@ -9,11 +8,9 @@ public sealed partial class ManageGroupsDialog : Window
     public ManageGroupsDialog()
     {
         InitializeComponent();
-        this.FindControl<Button>("CloseButton")!.Click += (_, _) => Close();
-        Opened += async (_, _) =>
-        {
-            if (DataContext is ManageGroupsViewModel vm)
-                await vm.LoadAsync(CancellationToken.None);
-        };
+        var content = this.FindControl<ManageGroupsContent>("InnerContent")!;
+        _ = content.Completion.ContinueWith(_ =>
+            Dispatcher.UIThread.Post(() => Close()),
+            System.Threading.Tasks.TaskScheduler.Default);
     }
 }

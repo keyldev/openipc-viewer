@@ -34,6 +34,10 @@ public static class OverlayDialogPresenter
             VerticalAlignment = VerticalAlignment.Stretch,
             Child = new Border
             {
+                // Margin keeps the dialog off-edge on phone viewports — content
+                // controls cap with MaxWidth so they don't try to render at
+                // their desktop size on a 360px-wide screen.
+                Margin = new Thickness(12),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 Child = content,

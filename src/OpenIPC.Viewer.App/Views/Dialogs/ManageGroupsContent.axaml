@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenIPC.Viewer.App.ViewModels.Dialogs"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
+             x:Class="OpenIPC.Viewer.App.Views.Dialogs.ManageGroupsContent"
+             x:DataType="vm:ManageGroupsViewModel"
+             MaxWidth="460" MaxHeight="600"
+             Background="{StaticResource Bg1Brush}"
+             FontFamily="{StaticResource FontSans}"
+             FontSize="{StaticResource FontSizeBase}"
+             Foreground="{StaticResource TextPrimaryBrush}">
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="24">
+
+    <TextBlock Grid.Row="0"
+               Text="{Binding [Groups.Title], Source={x:Static svc:Localizer.Instance}}"
+               FontSize="{StaticResource FontSizeLg}"
+               FontWeight="SemiBold"
+               Margin="0,0,0,16" />
+
+    <TextBlock Grid.Row="1"
+               Text="{Binding [Groups.Empty], Source={x:Static svc:Localizer.Instance}}"
+               IsVisible="{Binding Groups.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"
+               Foreground="{StaticResource TextSecondaryBrush}"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center" />
+
+    <ScrollViewer Grid.Row="1" IsVisible="{Binding Groups.Count}">
+      <ItemsControl ItemsSource="{Binding Groups}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="6" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:GroupRowViewModel">
+            <Border Background="{StaticResource Bg2Brush}"
+                    CornerRadius="6"
+                    Padding="10,8">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding Name, Mode=TwoWay}"
+                         IsReadOnly="{Binding !IsEditing}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Content="✎"
+                        Command="{Binding BeginRenameCommand}"
+                        IsVisible="{Binding !IsEditing}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Padding="8,4" />
+                <Button Grid.Column="1"
+                        Content="✓"
+                        Command="{Binding CommitRenameCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="{StaticResource AccentBrush}"
+                        Padding="8,4" />
+                <Button Grid.Column="2"
+                        Content="✕"
+                        Command="{Binding DeleteCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="{StaticResource DangerBrush}"
+                        Padding="8,4" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+      <TextBox Grid.Column="0"
+               Text="{Binding NewGroupName, Mode=TwoWay}"
+               PlaceholderText="{Binding [Groups.NewName], Source={x:Static svc:Localizer.Instance}}" />
+      <Button Grid.Column="1"
+              Content="{Binding [Groups.Add], Source={x:Static svc:Localizer.Instance}}"
+              Command="{Binding AddCommand}"
+              IsEnabled="{Binding CanAdd}"
+              Margin="8,0,0,0"
+              Padding="14,6"
+              Background="{StaticResource AccentBrush}"
+              Foreground="White"
+              CornerRadius="6" />
+    </Grid>
+
+    <TextBlock Grid.Row="3"
+               Text="{Binding ErrorMessage}"
+               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+               Foreground="{StaticResource DangerBrush}"
+               TextWrapping="Wrap"
+               Margin="0,12,0,0" />
+
+    <Button Grid.Row="4"
+            Name="CloseButton"
+            Content="{Binding [Common.Cancel], Source={x:Static svc:Localizer.Instance}}"
+            HorizontalAlignment="Right"
+            Margin="0,16,0,0"
+            Padding="14,6"
+            Background="Transparent"
+            BorderBrush="{StaticResource BorderMediumBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Foreground="{StaticResource TextPrimaryBrush}" />
+
+  </Grid>
+
+</UserControl>

@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using OpenIPC.Viewer.App.ViewModels.Dialogs;
+using Avalonia.Threading;
 
 namespace OpenIPC.Viewer.App.Views.Dialogs;
 
@@ -8,19 +8,9 @@ public sealed partial class DiscoveryDialogWindow : Window
     public DiscoveryDialogWindow()
     {
         InitializeComponent();
-
-        this.FindControl<Button>("CancelButton")!.Click += (_, _) =>
-        {
-            if (DataContext is DiscoveryDialogViewModel vm) vm.Cancel();
-            Close(null);
-        };
-
-        this.FindControl<Button>("AddButton")!.Click += async (_, _) =>
-        {
-            if (DataContext is not DiscoveryDialogViewModel vm) return;
-            var result = await vm.AddSelectedAsync();
-            if (result is not null)
-                Close(result);
-        };
+        var content = this.FindControl<DiscoveryDialogContent>("InnerContent")!;
+        _ = content.Completion.ContinueWith(t =>
+            Dispatcher.UIThread.Post(() => Close(t.Result)),
+            System.Threading.Tasks.TaskScheduler.Default);
     }
 }

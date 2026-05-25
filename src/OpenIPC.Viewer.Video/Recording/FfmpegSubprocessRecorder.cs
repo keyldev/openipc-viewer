@@ -13,8 +13,9 @@ namespace OpenIPC.Viewer.Video.Recording;
 //
 // FFmpeg path resolution (first hit wins):
 //   1. Explicit override (constructor / appsettings "Recording:FfmpegPath")
-//   2. runtimes/win-x64/native/ffmpeg.exe next to the app (bundled install)
-//   3. "ffmpeg" — falls through to OS PATH lookup
+//   2. Per-RID bundled binary in runtimes/{rid}/native/ (Phase 8 fills these
+//      for linux-x64 / osx-x64 / osx-arm64; today only win-x64 has artifacts)
+//   3. "ffmpeg" — falls through to OS PATH lookup (apt/brew/PATH on *nix)
 public sealed class FfmpegSubprocessRecorder : IRecorder
 {
     private readonly ILoggerFactory _loggerFactory;
@@ -37,7 +38,22 @@ public sealed class FfmpegSubprocessRecorder : IRecorder
 
     private static string ResolveDefault()
     {
-        var bundled = Path.Combine(AppContext.BaseDirectory, "runtimes", "win-x64", "native", "ffmpeg.exe");
-        return File.Exists(bundled) ? bundled : "ffmpeg";
+        var (rid, exe) = CurrentRid();
+        if (rid is not null)
+        {
+            var bundled = Path.Combine(AppContext.BaseDirectory, "runtimes", rid, "native", exe);
+            if (File.Exists(bundled)) return bundled;
+        }
+        return "ffmpeg";
+    }
+
+    private static (string? Rid, string Exe) CurrentRid()
+    {
+        if (OperatingSystem.IsWindows()) return ("win-x64", "ffmpeg.exe");
+        if (OperatingSystem.IsLinux()) return ("linux-x64", "ffmpeg");
+        if (OperatingSystem.IsMacOS())
+            return (System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64
+                ? "osx-arm64" : "osx-x64", "ffmpeg");
+        return (null, "ffmpeg");
     }
 }

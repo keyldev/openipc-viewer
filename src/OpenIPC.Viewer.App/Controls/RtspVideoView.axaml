@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OpenIPC.Viewer.App.Controls.RtspVideoView">
+  <Grid Background="{StaticResource Bg0Brush}">
+    <Image Name="PART_Image"
+           Stretch="Uniform"
+           StretchDirection="Both" />
+  </Grid>
+</UserControl>

@@ -55,7 +55,9 @@
                     BorderBrush="{StaticResource BorderWeakBrush}"
                     BorderThickness="1"
                     CornerRadius="10"
-                    Padding="16">
+                    Padding="16"
+                    Cursor="Hand"
+                    Tapped="OnCameraCardTapped">
               <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
 
                 <Border Grid.Column="0" Grid.RowSpan="2"

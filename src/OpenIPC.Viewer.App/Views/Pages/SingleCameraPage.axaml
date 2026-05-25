@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
+             xmlns:controls="using:OpenIPC.Viewer.App.Controls"
+             x:Class="OpenIPC.Viewer.App.Views.Pages.SingleCameraPage"
+             x:DataType="vm:SingleCameraPageViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Header -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+      <Button Grid.Column="0"
+              Content="← Back"
+              Command="{Binding BackCommand}"
+              Background="Transparent"
+              BorderBrush="{StaticResource BorderMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="10,6"
+              Foreground="{StaticResource TextPrimaryBrush}" />
+      <StackPanel Grid.Column="1" Spacing="2" Margin="16,0,0,0" VerticalAlignment="Center">
+        <TextBlock Text="{Binding CameraName}"
+                   FontSize="{StaticResource FontSizeLg}"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding HostLabel}"
+                   FontFamily="{StaticResource FontMono}"
+                   FontSize="{StaticResource FontSizeSm}"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Video + overlays -->
+    <Grid Grid.Row="1">
+      <controls:RtspVideoView Session="{Binding Session}" />
+
+      <!-- Top-left LIVE badge -->
+      <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12"
+              Background="{StaticResource DangerBrush}"
+              CornerRadius="3"
+              Padding="6,2"
+              IsVisible="{Binding Session, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock Text="LIVE" FontFamily="{StaticResource FontMono}" FontSize="10" Foreground="White" />
+      </Border>
+
+      <!-- Top-right resolution/codec -->
+      <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12"
+              Background="#80000000"
+              CornerRadius="3"
+              Padding="6,2"
+              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
+          <Run Text="{Binding Telemetry.Width}" /><Run Text="x" /><Run Text="{Binding Telemetry.Height}" /><Run Text=" " /><Run Text="{Binding Telemetry.Codec}" />
+        </TextBlock>
+      </Border>
+
+      <!-- Bottom-left fps -->
+      <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12"
+              Background="#80000000"
+              CornerRadius="3"
+              Padding="6,2"
+              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
+          <Run Text="{Binding Telemetry.Fps, StringFormat={}{0:F0} fps}" />
+        </TextBlock>
+      </Border>
+
+      <!-- Bottom-right frames -->
+      <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12"
+              Background="#80000000"
+              CornerRadius="3"
+              Padding="6,2"
+              IsVisible="{Binding Telemetry, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}">
+          <Run Text="{Binding Telemetry.FramesDecoded}" /><Run Text=" frames" />
+        </TextBlock>
+      </Border>
+
+      <!-- Error overlay -->
+      <Border HorizontalAlignment="Stretch" VerticalAlignment="Top"
+              Background="{StaticResource DangerBrush}"
+              Padding="12,8"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="White" />
+      </Border>
+    </Grid>
+
+    <!-- Bottom bar -->
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+      <TextBlock Grid.Column="0"
+                 Text="{Binding SnapshotPath, StringFormat='Snapshot saved to {0}'}"
+                 IsVisible="{Binding SnapshotPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 Foreground="{StaticResource TextSecondaryBrush}"
+                 FontSize="{StaticResource FontSizeSm}"
+                 VerticalAlignment="Center" />
+      <Button Grid.Column="1"
+              Content="Snapshot"
+              Command="{Binding SnapshotCommand}"
+              Background="{StaticResource AccentBrush}"
+              Foreground="White"
+              Padding="14,8"
+              CornerRadius="6" />
+    </Grid>
+
+  </Grid>
+
+</UserControl>

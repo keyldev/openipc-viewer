@@ -1,0 +1,19 @@
+# MediaMTX test fixture for Phase 2 smoke + integration tests.
+# Brings up rtsp://localhost:8554/test that, on first client connect, spawns
+# ffmpeg with testsrc (animated SMPTE-ish pattern) and streams h264.
+#
+# Usage:
+#   docker compose -f tools/mediamtx/docker-compose.yml up -d
+#   docker compose -f tools/mediamtx/docker-compose.yml down
+
+services:
+  mediamtx:
+    # latest-ffmpeg variant ships with ffmpeg, needed for runOnDemand.
+    image: bluenviron/mediamtx:latest-ffmpeg
+    container_name: openipc-mediamtx
+    ports:
+      - "8554:8554"   # RTSP
+      - "9997:9997"   # API (optional, useful for debugging)
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    restart: unless-stopped

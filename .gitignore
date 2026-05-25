@@ -25,6 +25,9 @@ coverage*.json
 *.snupkg
 .nuget/
 
+## Local download cache (FFmpeg archives, sample assets)
+.cache/
+
 ## OS
 Thumbs.db
 .DS_Store

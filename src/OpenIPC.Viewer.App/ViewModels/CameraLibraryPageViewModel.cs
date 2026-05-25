@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
+using OpenIPC.Viewer.App.Messages;
 using OpenIPC.Viewer.App.Services;
 using OpenIPC.Viewer.App.ViewModels.Dialogs;
 using OpenIPC.Viewer.Core.Entities;
@@ -16,6 +18,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
 {
     private readonly CameraDirectoryService _directory;
     private readonly IDialogService _dialogs;
+    private readonly CameraEditorFactory _editorFactory;
     private readonly ILogger<CameraLibraryPageViewModel> _logger;
 
     public string Title => "Cameras";
@@ -32,10 +35,12 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
     public CameraLibraryPageViewModel(
         CameraDirectoryService directory,
         IDialogService dialogs,
+        CameraEditorFactory editorFactory,
         ILogger<CameraLibraryPageViewModel> logger)
     {
         _directory = directory;
         _dialogs = dialogs;
+        _editorFactory = editorFactory;
         _logger = logger;
         Cameras.CollectionChanged += (_, _) =>
         {
@@ -54,9 +59,17 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void OpenCamera(CameraRowViewModel? row)
+    {
+        if (row is null)
+            return;
+        WeakReferenceMessenger.Default.Send(new OpenCameraMessage(row.Camera.Id));
+    }
+
+    [RelayCommand]
     private async Task AddCameraAsync()
     {
-        var editor = new CameraEditorViewModel();
+        var editor = _editorFactory.CreateForNew();
         var result = await _dialogs.ShowCameraEditorAsync(editor).ConfigureAwait(true);
         if (result?.NewRequest is not { } req)
             return;
@@ -79,7 +92,7 @@ public sealed partial class CameraLibraryPageViewModel : ViewModelBase
             return;
 
         var creds = await _directory.GetCredentialsAsync(row.Camera.Id, CancellationToken.None).ConfigureAwait(true);
-        var editor = new CameraEditorViewModel(row.Camera, creds);
+        var editor = _editorFactory.CreateForEdit(row.Camera, creds);
         var result = await _dialogs.ShowCameraEditorAsync(editor).ConfigureAwait(true);
         if (result?.UpdateRequest is not { } req)
             return;

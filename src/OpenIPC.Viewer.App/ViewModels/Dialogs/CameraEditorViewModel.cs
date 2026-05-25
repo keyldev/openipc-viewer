@@ -1,12 +1,21 @@
 using System;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Core.Entities;
+using OpenIPC.Viewer.Core.Video;
 
 namespace OpenIPC.Viewer.App.ViewModels.Dialogs;
 
 public sealed partial class CameraEditorViewModel : ViewModelBase
 {
+    private readonly IVideoEngine? _engine;
+    private readonly ILogger<CameraEditorViewModel>? _logger;
+
     public CameraId? EditingId { get; }
     public string Title => EditingId is null ? "Add camera" : "Edit camera";
 
@@ -20,12 +29,24 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
     [ObservableProperty] private string _password = "";
 
     [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty] private string? _testStatus;
 
-    public bool CanTestConnection => false; // wired in Phase 2
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanTestConnection))]
+    private bool _testInProgress;
+
+    public bool CanTestConnection => _engine is not null && !TestInProgress;
 
     public CameraEditorViewModel() { }
 
-    public CameraEditorViewModel(Camera existing, CameraCredentials? credentials)
+    public CameraEditorViewModel(IVideoEngine engine, ILogger<CameraEditorViewModel> logger)
+    {
+        _engine = engine;
+        _logger = logger;
+    }
+
+    public CameraEditorViewModel(Camera existing, CameraCredentials? credentials, IVideoEngine engine, ILogger<CameraEditorViewModel> logger)
+        : this(engine, logger)
     {
         EditingId = existing.Id;
         Name = existing.Name;
@@ -45,60 +66,58 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
             RtspMainText = $"rtsp://{Host.Trim()}/";
     }
 
+    [RelayCommand(CanExecute = nameof(CanTestConnection))]
+    private async Task TestConnectionAsync()
+    {
+        if (_engine is null) return;
+
+        if (!TryValidate(out _, out var rtspMain, out _, out _))
+        {
+            TestStatus = ErrorMessage;
+            return;
+        }
+
+        TestInProgress = true;
+        TestStatus = "Connecting...";
+        TestConnectionCommand.NotifyCanExecuteChanged();
+
+        var creds = string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(Password)
+            ? null
+            : new CameraCredentials(Username, Password);
+        var options = VideoSessionOptions.Default(rtspMain, creds);
+        var session = _engine.CreateSession(options);
+
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            await session.StartAsync(cts.Token).ConfigureAwait(true);
+            var frame = await session.Frames.Take(1).ToTask(cts.Token).ConfigureAwait(true);
+            TestStatus = $"OK — {frame.Width}x{frame.Height}";
+        }
+        catch (OperationCanceledException)
+        {
+            TestStatus = "Timeout (8s)";
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Test connection failed");
+            TestStatus = $"Failed: {ex.Message}";
+        }
+        finally
+        {
+            await session.DisposeAsync().ConfigureAwait(true);
+            TestInProgress = false;
+            TestConnectionCommand.NotifyCanExecuteChanged();
+        }
+    }
+
     public bool TryBuildRequest(out NewCameraRequest? newRequest, out UpdateCameraRequest? updateRequest)
     {
         newRequest = null;
         updateRequest = null;
-        ErrorMessage = null;
 
-        if (string.IsNullOrWhiteSpace(Name))
-        {
-            ErrorMessage = "Name is required.";
+        if (!TryValidate(out var ok, out var rtspMain, out var rtspSub, out var onvifPort))
             return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(Host))
-        {
-            ErrorMessage = "Host is required.";
-            return false;
-        }
-
-        var rtspMainSource = string.IsNullOrWhiteSpace(RtspMainText)
-            ? $"rtsp://{Host.Trim()}/"
-            : RtspMainText.Trim();
-
-        if (!Uri.TryCreate(rtspMainSource, UriKind.Absolute, out var rtspMain))
-        {
-            ErrorMessage = "RTSP main URI is not a valid absolute URI.";
-            return false;
-        }
-
-        Uri? rtspSub = null;
-        if (!string.IsNullOrWhiteSpace(RtspSubText))
-        {
-            if (!Uri.TryCreate(RtspSubText.Trim(), UriKind.Absolute, out rtspSub))
-            {
-                ErrorMessage = "RTSP sub URI is not a valid absolute URI.";
-                return false;
-            }
-        }
-
-        int? onvifPort = null;
-        if (!string.IsNullOrWhiteSpace(OnvifPortText))
-        {
-            if (!int.TryParse(OnvifPortText.Trim(), out var port) || port < 1 || port > 65535)
-            {
-                ErrorMessage = "ONVIF port must be between 1 and 65535.";
-                return false;
-            }
-            onvifPort = port;
-        }
-
-        if (HttpPort < 1 || HttpPort > 65535)
-        {
-            ErrorMessage = "HTTP port must be between 1 and 65535.";
-            return false;
-        }
 
         var credentials = string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(Password)
             ? null
@@ -127,6 +146,64 @@ public sealed partial class CameraEditorViewModel : ViewModelBase
                 Credentials: credentials);
         }
 
+        return ok;
+    }
+
+    private bool TryValidate(out bool ok, out Uri rtspMain, out Uri? rtspSub, out int? onvifPort)
+    {
+        ok = false;
+        rtspMain = default!;
+        rtspSub = null;
+        onvifPort = null;
+        ErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            ErrorMessage = "Name is required.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(Host))
+        {
+            ErrorMessage = "Host is required.";
+            return false;
+        }
+
+        var rtspMainSource = string.IsNullOrWhiteSpace(RtspMainText)
+            ? $"rtsp://{Host.Trim()}/"
+            : RtspMainText.Trim();
+
+        if (!Uri.TryCreate(rtspMainSource, UriKind.Absolute, out rtspMain!))
+        {
+            ErrorMessage = "RTSP main URI is not a valid absolute URI.";
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(RtspSubText))
+        {
+            if (!Uri.TryCreate(RtspSubText.Trim(), UriKind.Absolute, out rtspSub))
+            {
+                ErrorMessage = "RTSP sub URI is not a valid absolute URI.";
+                return false;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(OnvifPortText))
+        {
+            if (!int.TryParse(OnvifPortText.Trim(), out var port) || port < 1 || port > 65535)
+            {
+                ErrorMessage = "ONVIF port must be between 1 and 65535.";
+                return false;
+            }
+            onvifPort = port;
+        }
+
+        if (HttpPort < 1 || HttpPort > 65535)
+        {
+            ErrorMessage = "HTTP port must be between 1 and 65535.";
+            return false;
+        }
+
+        ok = true;
         return true;
     }
 }

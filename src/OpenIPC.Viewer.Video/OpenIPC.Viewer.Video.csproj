@@ -2,10 +2,32 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="System.Reactive" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OpenIPC.Viewer.Core\OpenIPC.Viewer.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    FFmpeg shared-build DLLs aren't on NuGet for our pinned version. Each dev runs
+    tools/fetch-ffmpeg.ps1 once; this glob ships them into the consuming exe's
+    output without committing the binaries to git. See README "Native dependencies".
+  -->
+  <ItemGroup>
+    <Content Include="..\..\runtimes\win-x64\native\*.dll"
+             Condition="Exists('..\..\runtimes\win-x64\native')">
+      <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
   </ItemGroup>
 
 </Project>

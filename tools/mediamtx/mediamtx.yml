@@ -1,0 +1,21 @@
+# Minimal MediaMTX config for the OpenIPC.Viewer Phase 2 fixture.
+# Single test stream that synthesises a 1280x720@25fps h264 pattern on demand.
+
+api: yes
+apiAddress: :9997
+
+logLevel: info
+
+paths:
+  test:
+    source: publisher
+    runOnDemand: >
+      ffmpeg -hide_banner -loglevel warning
+      -re -f lavfi -i testsrc=size=1280x720:rate=25
+      -f lavfi -i sine=frequency=1000:beep_factor=4
+      -c:v libx264 -preset ultrafast -tune zerolatency -profile:v baseline -level 3.1
+      -pix_fmt yuv420p -g 50 -b:v 2M
+      -c:a aac -b:a 64k
+      -f rtsp -rtsp_transport tcp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnDemandRestart: yes
+    runOnDemandCloseAfter: 10s

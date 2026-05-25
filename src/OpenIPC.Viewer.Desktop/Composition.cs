@@ -9,8 +9,10 @@ using OpenIPC.Viewer.App.ViewModels;
 using OpenIPC.Viewer.Core.Persistence;
 using OpenIPC.Viewer.Core.Platform;
 using OpenIPC.Viewer.Core.Services;
+using OpenIPC.Viewer.Core.Video;
 using OpenIPC.Viewer.Infrastructure.Persistence;
 using OpenIPC.Viewer.Infrastructure.Secrets;
+using OpenIPC.Viewer.Video;
 using Serilog;
 
 namespace OpenIPC.Viewer.Desktop;
@@ -55,8 +57,13 @@ internal static class Composition
         // Domain services
         services.AddSingleton<CameraDirectoryService>();
 
+        // Video
+        services.AddSingleton<IVideoEngine, FfmpegVideoEngine>();
+
         // UI services
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<SingleCameraPageFactory>();
+        services.AddSingleton<CameraEditorFactory>();
 
         // ViewModels
         services.AddTransient<MainWindowViewModel>();

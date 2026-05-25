@@ -1,0 +1,84 @@
+using System;
+using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using OpenIPC.Viewer.Core.Video;
+
+namespace OpenIPC.Viewer.App.Controls;
+
+public sealed partial class RtspVideoView : UserControl
+{
+    public static readonly StyledProperty<IVideoSession?> SessionProperty =
+        AvaloniaProperty.Register<RtspVideoView, IVideoSession?>(nameof(Session));
+
+    public IVideoSession? Session
+    {
+        get => GetValue(SessionProperty);
+        set => SetValue(SessionProperty, value);
+    }
+
+    private readonly Image _image;
+    private WriteableBitmap? _bitmap;
+    private IDisposable? _frameSub;
+
+    public RtspVideoView()
+    {
+        InitializeComponent();
+        _image = this.FindControl<Image>("PART_Image")
+                 ?? throw new InvalidOperationException("PART_Image missing");
+    }
+
+    static RtspVideoView()
+    {
+        SessionProperty.Changed.AddClassHandler<RtspVideoView>((view, _) => view.OnSessionChanged());
+    }
+
+    private void OnSessionChanged()
+    {
+        _frameSub?.Dispose();
+        _frameSub = Session?.Frames.Subscribe(OnFrame);
+    }
+
+    // OnFrame fires on the decoder thread. We marshal to UI synchronously so the
+    // frame's pooled buffer stays valid until the copy completes (see
+    // FfmpegVideoSession comment in EmitFrame).
+    private void OnFrame(VideoFrame frame)
+    {
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            EnsureBitmap(frame.Width, frame.Height);
+            if (_bitmap is null)
+                return;
+
+            using (var locked = _bitmap.Lock())
+            {
+                Marshal.Copy(frame.Bgra, 0, locked.Address, frame.Stride * frame.Height);
+            }
+            _image.InvalidateVisual();
+        });
+    }
+
+    private void EnsureBitmap(int width, int height)
+    {
+        if (_bitmap is not null && _bitmap.PixelSize.Width == width && _bitmap.PixelSize.Height == height)
+            return;
+
+        _bitmap = new WriteableBitmap(
+            new PixelSize(width, height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul);
+        _image.Source = _bitmap;
+    }
+
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        _frameSub?.Dispose();
+        _frameSub = null;
+        base.OnDetachedFromVisualTree(e);
+    }
+}

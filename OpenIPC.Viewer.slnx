@@ -9,5 +9,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OpenIPC.Viewer.Core.Tests/OpenIPC.Viewer.Core.Tests.csproj" />
+    <Project Path="tests/OpenIPC.Viewer.Video.Tests/OpenIPC.Viewer.Video.Tests.csproj" />
   </Folder>
 </Solution>

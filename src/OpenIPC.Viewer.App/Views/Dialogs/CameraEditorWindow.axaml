@@ -84,15 +84,21 @@
     </ScrollViewer>
 
     <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,20,0,0">
-      <Button Grid.Column="0"
-              Content="Test connection"
-              IsEnabled="{Binding CanTestConnection}"
-              Padding="12,8"
-              Background="Transparent"
-              BorderBrush="{StaticResource BorderMediumBrush}"
-              BorderThickness="1"
-              CornerRadius="6"
-              Foreground="{StaticResource TextSecondaryBrush}" />
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <Button Content="Test connection"
+                Command="{Binding TestConnectionCommand}"
+                Padding="12,8"
+                Background="Transparent"
+                BorderBrush="{StaticResource BorderMediumBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Foreground="{StaticResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding TestStatus}"
+                   FontSize="{StaticResource FontSizeSm}"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"
+                   IsVisible="{Binding TestStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
       <Button Grid.Column="2"
               Name="CancelButton"
               Content="Cancel"

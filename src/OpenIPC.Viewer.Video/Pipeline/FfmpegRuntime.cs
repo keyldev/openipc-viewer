@@ -14,42 +14,70 @@ internal static class FfmpegRuntime
         if (Interlocked.CompareExchange(ref _initialized, 1, 0) != 0)
             return;
 
+        if (OperatingSystem.IsAndroid())
+        {
+            // FFmpeg.AutoGen 7.1.1's FunctionResolverFactory.Create() throws
+            // PlatformNotSupportedException on Android (Environment.OSVersion.Platform
+            // reports Other). DynamicallyLoadedBindings.Initialize() — called from the
+            // ffmpeg static ctor — uses this field if non-null, otherwise invokes the
+            // throwing factory. Pre-setting bypasses the broken path entirely.
+            DynamicallyLoadedBindings.FunctionResolver = new AndroidFunctionResolver();
+        }
+
         var nativeDir = ResolveNativeDir();
-        ffmpeg.RootPath = nativeDir;
 
         try
         {
+            // RootPath assignment is the FIRST touch of the ffmpeg static class
+            // and triggers its type initializer — any DllImport/loader failure
+            // inside surfaces here wrapped in TypeInitializationException.
+            // Must stay inside try.
+            ffmpeg.RootPath = nativeDir;
+
             // Touch one function so the P/Invoke loader resolves the native
             // libs early — anything missing surfaces here instead of mid-stream.
             _ = ffmpeg.av_version_info();
             ffmpeg.avformat_network_init();
         }
-        catch (DllNotFoundException ex)
+        catch (Exception ex) when (IsNativeLoadFailure(ex))
         {
             // Most-likely cause on Android: the APK shipped without FFmpeg
             // shared libs because tools/build-ffmpeg-android.sh wasn't run for
-            // the device's ABI (arm64-v8a / x86_64). Re-throw with a hint so
-            // the failure reads as a setup problem, not a code bug.
+            // the device's ABI (arm64-v8a / x86_64), or the .so are present but
+            // depend on something missing (libc++_shared, libmediandk, etc.).
+            // Re-throw with the full inner chain so the underlying loader
+            // message is preserved.
             var (rid, _) = RuntimeIds.Current();
-            var probe = string.IsNullOrEmpty(nativeDir)
-                ? "(loader path)"
-                : nativeDir;
+            var probe = string.IsNullOrEmpty(nativeDir) ? "(loader path)" : nativeDir;
             throw new FfmpegNativeLibsMissingException(
-                $"FFmpeg native libraries are missing for runtime '{rid ?? "unknown"}'. " +
+                $"FFmpeg native libraries failed to load for runtime '{rid ?? "unknown"}'. " +
                 $"Probed: {probe}. " +
-                $"Android: run tools/build-ffmpeg-android.sh (WSL/Linux/macOS) — builds " +
-                $"arm64-v8a + x86_64 from upstream n7.1. " +
-                $"Desktop: run tools/fetch-ffmpeg.ps1 (Windows) or install ffmpeg via " +
-                $"apt/brew. Inner: {ex.Message}", ex);
+                $"Android: ensure runtimes/android-{{arm64,x64}}/native/*.so are populated " +
+                $"(run tools/build-ffmpeg-android.sh via WSL or pull .so from a CI APK artifact). " +
+                $"Desktop: tools/fetch-ffmpeg.ps1 (Windows) or apt/brew. " +
+                $"Underlying: {DescribeChain(ex)}", ex);
         }
-        catch (TypeInitializationException ex) when (ex.InnerException is DllNotFoundException dll)
+    }
+
+    private static bool IsNativeLoadFailure(Exception ex)
+    {
+        for (var cur = ex; cur is not null; cur = cur.InnerException)
         {
-            var (rid, _) = RuntimeIds.Current();
-            throw new FfmpegNativeLibsMissingException(
-                $"FFmpeg native libraries are missing for runtime '{rid ?? "unknown"}'. " +
-                $"Run tools/build-ffmpeg-android.sh (Android) or tools/fetch-ffmpeg.ps1 " +
-                $"(Desktop). Inner: {dll.Message}", ex);
+            if (cur is DllNotFoundException) return true;
+            if (cur is BadImageFormatException) return true;
         }
+        return ex is TypeInitializationException;
+    }
+
+    private static string DescribeChain(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (var cur = ex; cur is not null; cur = cur.InnerException)
+        {
+            if (sb.Length > 0) sb.Append(" → ");
+            sb.Append(cur.GetType().Name).Append(": ").Append(cur.Message);
+        }
+        return sb.ToString();
     }
 
     private static string ResolveNativeDir()

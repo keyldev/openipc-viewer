@@ -60,6 +60,8 @@
   <StreamGeometry x:Key="IconClose">M18,6 L6,18 M6,6 L18,18</StreamGeometry>
   <StreamGeometry x:Key="IconEdit">M13,21 h8 M15,5 L19,9 M21.174,6.812 a1,1 0 0 0 -3.986,-3.987 L3.842,16.174 a2,2 0 0 0 -0.5,0.83 l-1.321,4.352 a0.5,0.5 0 0 0 0.623,0.622 l4.353,-1.32 a2,2 0 0 0 0.83,-0.497 z</StreamGeometry>
   <StreamGeometry x:Key="IconCheck">M20,6 L9,17 L4,12</StreamGeometry>
+  <StreamGeometry x:Key="IconChevronRight">M9,18 L15,12 L9,6</StreamGeometry>
+  <StreamGeometry x:Key="IconChevronLeft">M15,18 L9,12 L15,6</StreamGeometry>
 
   <!-- Section icons for Settings (Lucide paths). -->
   <!-- IconAppearance — palette. -->

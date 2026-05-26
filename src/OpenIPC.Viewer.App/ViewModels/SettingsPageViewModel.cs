@@ -31,6 +31,51 @@ public sealed partial class SettingsPageViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsRecordingsDirOverridden))]
     private string _recordingsDirOverride = "";
 
+    // Master-detail state. -1 = no section selected (list view on narrow);
+    // 0..5 maps to Appearance/Video/Recording/Discovery/Advanced/About. On
+    // wide viewports a section is always selected (defaults to 0). Code-behind
+    // toggles IsWide based on viewport width and resizes the Grid columns to
+    // hide one pane on narrow.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAppearance))]
+    [NotifyPropertyChangedFor(nameof(IsVideo))]
+    [NotifyPropertyChangedFor(nameof(IsRecording))]
+    [NotifyPropertyChangedFor(nameof(IsDiscovery))]
+    [NotifyPropertyChangedFor(nameof(IsAdvanced))]
+    [NotifyPropertyChangedFor(nameof(IsAbout))]
+    [NotifyPropertyChangedFor(nameof(ShowList))]
+    [NotifyPropertyChangedFor(nameof(ShowDetail))]
+    [NotifyPropertyChangedFor(nameof(ShowBackButton))]
+    private int _selectedSectionIndex = -1;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowList))]
+    [NotifyPropertyChangedFor(nameof(ShowDetail))]
+    [NotifyPropertyChangedFor(nameof(ShowBackButton))]
+    private bool _isWide;
+
+    public bool IsAppearance => SelectedSectionIndex == 0;
+    public bool IsVideo      => SelectedSectionIndex == 1;
+    public bool IsRecording  => SelectedSectionIndex == 2;
+    public bool IsDiscovery  => SelectedSectionIndex == 3;
+    public bool IsAdvanced   => SelectedSectionIndex == 4;
+    public bool IsAbout      => SelectedSectionIndex == 5;
+
+    public bool ShowList       => IsWide || SelectedSectionIndex < 0;
+    public bool ShowDetail     => IsWide || SelectedSectionIndex >= 0;
+    public bool ShowBackButton => !IsWide && SelectedSectionIndex >= 0;
+
+    partial void OnIsWideChanged(bool value)
+    {
+        // Transitioning narrow→wide with nothing selected would leave the
+        // detail pane blank; default to the first section.
+        if (value && SelectedSectionIndex < 0)
+            SelectedSectionIndex = 0;
+    }
+
+    [RelayCommand]
+    private void BackToList() => SelectedSectionIndex = -1;
+
     public bool IsRecordingsDirOverridden => !string.IsNullOrWhiteSpace(RecordingsDirOverride);
 
     // What RecordingService will actually use — override if set, otherwise

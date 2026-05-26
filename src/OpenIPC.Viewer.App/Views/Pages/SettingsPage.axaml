@@ -7,31 +7,21 @@
              x:DataType="vm:SettingsPageViewModel">
 
   <UserControl.Styles>
-    <!-- Section card. Bg2 + thin border + soft corners. Padding shrinks slightly
-         on narrow viewports through the Grid layout — actual card padding stays
-         constant for visual consistency desktop↔mobile. -->
-    <Style Selector="Border.section">
-      <Setter Property="Background" Value="{StaticResource Bg2Brush}" />
-      <Setter Property="BorderBrush" Value="{StaticResource BorderWeakBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="10" />
-      <Setter Property="Padding" Value="16" />
+    <!-- Section card kept for any future "feature card" — fields below use
+         the bare Grid + label layout, no card wrapper, so detail looks like
+         macOS Settings (flat with section header). -->
+    <Style Selector="Path.section-icon">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBlock.section-title">
-      <Setter Property="FontSize" Value="{StaticResource FontSizeMd}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeLg}" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector="Path.section-icon">
-      <Setter Property="Width" Value="20" />
-      <Setter Property="Height" Value="20" />
-      <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <!-- Row: label on the left (wraps), control on the right. Stays one line
-         on desktop, on a phone narrow viewport the wrapping label keeps the
-         control visible instead of pushing it off-screen. -->
     <Style Selector="TextBlock.field-label">
       <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -46,20 +36,169 @@
       <Setter Property="Padding" Value="12,6" />
       <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
+    <!-- Sidebar / list ListBox: flat tiles, accent on selection. -->
+    <Style Selector="ListBox.sections">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.sections ListBoxItem">
+      <Setter Property="Padding" Value="10,10" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Margin" Value="0,2" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <!-- Per-item Lucide icon stroke colour mirrors the row's foreground so it
+         flips to white on the selected/accent state automatically. -->
+    <Style Selector="ListBox.sections Path.tile-icon">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ListBox.sections ListBoxItem:selected Path.tile-icon">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
+    <Style Selector="ListBox.sections Path.tile-chevron">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="Stroke" Value="{StaticResource TextTertiaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.back-link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0,4" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
   </UserControl.Styles>
 
-  <ScrollViewer>
-    <StackPanel Spacing="16" Margin="0,0,8,24" VerticalAlignment="Top">
+  <Grid x:Name="RootGrid">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="0" />
+    </Grid.ColumnDefinitions>
 
-      <TextBlock Text="{Binding [Settings.Title], Source={x:Static svc:Localizer.Instance}}"
-                 FontSize="{StaticResource FontSizeXl}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}" />
+    <!-- ===== Master / list pane (column 0) ===== -->
+    <ScrollViewer Grid.Column="0"
+                  IsVisible="{Binding ShowList}"
+                  Padding="0,0,8,24"
+                  HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12">
+        <TextBlock Text="{Binding [Settings.Title], Source={x:Static svc:Localizer.Instance}}"
+                   FontSize="{StaticResource FontSizeXl}"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Margin="0,0,0,4" />
 
-      <!-- Appearance -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <ListBox Classes="sections"
+                 SelectedIndex="{Binding SelectedSectionIndex, Mode=TwoWay}">
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconAppearance}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.Appearance], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconVideo}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.Video], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconRecord}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.Recording], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconRadar}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.Discovery], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconAdvanced}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.Advanced], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+          <ListBoxItem>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="lucide tile-icon"
+                    Data="{StaticResource IconAbout}"
+                    Margin="0,0,12,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding [Settings.About], Source={x:Static svc:Localizer.Instance}}"
+                         VerticalAlignment="Center" />
+              <Path Grid.Column="2" Classes="lucide tile-chevron"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding !IsWide}" />
+            </Grid>
+          </ListBoxItem>
+        </ListBox>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ===== Detail pane (column 1) ===== -->
+    <ScrollViewer Grid.Column="1"
+                  IsVisible="{Binding ShowDetail}"
+                  Padding="16,0,8,24"
+                  HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="20">
+
+        <!-- Back link — narrow only -->
+        <Button Classes="back-link"
+                IsVisible="{Binding ShowBackButton}"
+                Command="{Binding BackToListCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Path Classes="lucide" Data="{StaticResource IconChevronLeft}"
+                  Stroke="{StaticResource TextSecondaryBrush}"
+                  Width="16" Height="16" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding [Settings.Title], Source={x:Static svc:Localizer.Instance}}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <!-- Appearance -->
+        <StackPanel IsVisible="{Binding IsAppearance}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconAppearance}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Appearance], Source={x:Static svc:Localizer.Instance}}" />
@@ -71,7 +210,7 @@
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding LanguageOptions}"
                       SelectedItem="{Binding Language, Mode=TwoWay}"
-                      MinWidth="120">
+                      MinWidth="140">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="x:String">
                   <TextBlock Text="{Binding ., Converter={x:Static conv:LanguageCodeConverter.Instance}}" />
@@ -80,12 +219,10 @@
             </ComboBox>
           </Grid>
         </StackPanel>
-      </Border>
 
-      <!-- Video -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <!-- Video -->
+        <StackPanel IsVisible="{Binding IsVideo}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconVideo}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Video], Source={x:Static svc:Localizer.Instance}}" />
@@ -113,18 +250,16 @@
                       MinWidth="80" />
           </Grid>
         </StackPanel>
-      </Border>
 
-      <!-- Recording -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <!-- Recording -->
+        <StackPanel IsVisible="{Binding IsRecording}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconRecord}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Recording], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
 
-          <StackPanel Spacing="6">
+          <StackPanel Spacing="8">
             <TextBlock Classes="field-label"
                        Text="{Binding [Settings.Recording.Directory], Source={x:Static svc:Localizer.Instance}}" />
             <TextBox Text="{Binding EffectiveRecordingsDirectory, Mode=OneWay}"
@@ -149,12 +284,10 @@
             </WrapPanel>
           </StackPanel>
         </StackPanel>
-      </Border>
 
-      <!-- Discovery -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <!-- Discovery -->
+        <StackPanel IsVisible="{Binding IsDiscovery}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconRadar}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Discovery], Source={x:Static svc:Localizer.Instance}}" />
@@ -164,12 +297,10 @@
                     Content="{Binding [Settings.Discovery.AutoScan], Source={x:Static svc:Localizer.Instance}}"
                     Foreground="{StaticResource TextPrimaryBrush}" />
         </StackPanel>
-      </Border>
 
-      <!-- Advanced -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <!-- Advanced -->
+        <StackPanel IsVisible="{Binding IsAdvanced}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconAdvanced}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Advanced], Source={x:Static svc:Localizer.Instance}}" />
@@ -195,12 +326,10 @@
                        TextWrapping="Wrap" />
           </StackPanel>
         </StackPanel>
-      </Border>
 
-      <!-- About -->
-      <Border Classes="section">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <!-- About -->
+        <StackPanel IsVisible="{Binding IsAbout}" Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Path Classes="lucide section-icon" Data="{StaticResource IconAbout}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.About], Source={x:Static svc:Localizer.Instance}}" />
@@ -216,9 +345,10 @@
                   Command="{Binding OpenRepositoryCommand}"
                   HorizontalAlignment="Left" />
         </StackPanel>
-      </Border>
 
-    </StackPanel>
-  </ScrollViewer>
+      </StackPanel>
+    </ScrollViewer>
+
+  </Grid>
 
 </UserControl>

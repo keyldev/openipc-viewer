@@ -51,7 +51,9 @@
                         BorderThickness="0"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         Padding="8,4">
-                  <PathIcon Data="{StaticResource IconEdit}" Width="12" Height="12" />
+                  <Path Classes="lucide" Data="{StaticResource IconEdit}"
+                        Stroke="{StaticResource TextSecondaryBrush}"
+                        Width="14" Height="14" />
                 </Button>
                 <Button Grid.Column="1"
                         Command="{Binding CommitRenameCommand}"
@@ -60,7 +62,9 @@
                         BorderThickness="0"
                         Foreground="{StaticResource AccentBrush}"
                         Padding="8,4">
-                  <PathIcon Data="{StaticResource IconCheck}" Width="12" Height="12" />
+                  <Path Classes="lucide" Data="{StaticResource IconCheck}"
+                        Stroke="{StaticResource AccentBrush}"
+                        Width="14" Height="14" />
                 </Button>
                 <Button Grid.Column="2"
                         Command="{Binding DeleteCommand}"
@@ -68,7 +72,9 @@
                         BorderThickness="0"
                         Foreground="{StaticResource DangerBrush}"
                         Padding="8,4">
-                  <PathIcon Data="{StaticResource IconClose}" Width="11" Height="11" />
+                  <Path Classes="lucide" Data="{StaticResource IconClose}"
+                        Stroke="{StaticResource DangerBrush}"
+                        Width="13" Height="13" />
                 </Button>
               </Grid>
             </Border>

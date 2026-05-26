@@ -48,7 +48,9 @@
                 CornerRadius="8"
                 Foreground="{StaticResource TextPrimaryBrush}">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource IconSearch}" Width="14" Height="14" VerticalAlignment="Center" />
+            <Path Classes="lucide" Data="{StaticResource IconSearch}"
+                  Stroke="{StaticResource TextPrimaryBrush}"
+                  Width="16" Height="16" VerticalAlignment="Center" />
             <TextBlock Text="{Binding [Common.Discover], Source={x:Static svc:Localizer.Instance}}"
                        VerticalAlignment="Center" />
           </StackPanel>
@@ -61,7 +63,9 @@
                 CornerRadius="8"
                 Foreground="{StaticResource TextPrimaryBrush}">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource IconQr}" Width="14" Height="14" VerticalAlignment="Center" />
+            <Path Classes="lucide" Data="{StaticResource IconQr}"
+                  Stroke="{StaticResource TextPrimaryBrush}"
+                  Width="16" Height="16" VerticalAlignment="Center" />
             <TextBlock Text="{Binding [Library.ScanQr], Source={x:Static svc:Localizer.Instance}}"
                        VerticalAlignment="Center" />
           </StackPanel>

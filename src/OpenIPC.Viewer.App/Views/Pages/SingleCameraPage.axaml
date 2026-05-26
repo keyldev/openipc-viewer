@@ -131,7 +131,9 @@
                             Foreground="{StaticResource TextSecondaryBrush}"
                             Command="{Binding $parent[ItemsControl].((vm:SingleCameraPageViewModel)DataContext).RemovePresetCommand}"
                             CommandParameter="{Binding}">
-                      <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" />
+                      <Path Classes="lucide" Data="{StaticResource IconClose}"
+                            Stroke="{StaticResource TextSecondaryBrush}"
+                            Width="12" Height="12" />
                     </Button>
                   </Grid>
                 </DataTemplate>

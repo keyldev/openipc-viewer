@@ -40,6 +40,7 @@
     <StyleInclude Source="avares://OpenIPC.Viewer.App/Styles/BottomNav.axaml" />
     <StyleInclude Source="avares://OpenIPC.Viewer.App/Styles/Buttons.axaml" />
     <StyleInclude Source="avares://OpenIPC.Viewer.App/Styles/Tiles.axaml" />
+    <StyleInclude Source="avares://OpenIPC.Viewer.App/Styles/Icons.axaml" />
   </Application.Styles>
 
 </Application>

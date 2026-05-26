@@ -47,33 +47,32 @@
   <StreamGeometry x:Key="IconSettings">M2,4 H14 V6 H2 Z M2,7 H14 V9 H2 Z M2,10 H14 V12 H2 Z</StreamGeometry>
 
   <!--
-    Utility icons (16x16). Same EvenOdd-fill convention as the nav icons above
-    — concentric paths punch out inner regions so PathIcon's Foreground paints
-    the visible shape only.
+    Lucide icons (lucide.dev, ISC license). Paths transcribed from upstream
+    SVGs verbatim — 24×24 viewBox, intended to be rendered as STROKED outlines
+    via `<Path Classes="lucide" Stroke="..." Data="{StaticResource IconX}"/>`
+    (see Styles/Icons.axaml). The Path control's Stretch="Uniform" scales the
+    geometry to whatever Width/Height the callsite asks for. Do not feed these
+    into PathIcon — that fills the geometry and produces a black blob, not the
+    intended outline.
   -->
-  <!-- IconSearch — magnifier: outer lens ring + diagonal handle. Doubles as the
-       section icon for Discovery. -->
-  <StreamGeometry x:Key="IconSearch">M6,3 A3,3 0 1 1 6,9 A3,3 0 1 1 6,3 Z M6,4.2 A1.8,1.8 0 1 1 6,7.8 A1.8,1.8 0 1 1 6,4.2 Z M8.6,9 L9,8.6 L13,12.6 L12.6,13 Z</StreamGeometry>
-  <!-- IconQr — three corner finder patterns + two dots. -->
-  <StreamGeometry x:Key="IconQr">M2,2 H6 V6 H2 Z M3,3 H5 V5 H3 Z M10,2 H14 V6 H10 Z M11,3 H13 V5 H11 Z M2,10 H6 V14 H2 Z M3,11 H5 V13 H3 Z M9,8 H11 V10 H9 Z M12,11 H14 V13 H12 Z</StreamGeometry>
-  <!-- IconClose — × cross as two filled diagonal bars. -->
-  <StreamGeometry x:Key="IconClose">M3.5,4.5 L4.5,3.5 L12.5,11.5 L11.5,12.5 Z M11.5,3.5 L12.5,4.5 L4.5,12.5 L3.5,11.5 Z</StreamGeometry>
-  <!-- IconEdit — pencil silhouette. -->
-  <StreamGeometry x:Key="IconEdit">M2,14 L4.5,14 L13,5.5 L10.5,3 L2,11.5 Z M10.5,3 L12,1.5 L14.5,4 L13,5.5 Z</StreamGeometry>
-  <!-- IconCheck — thick check mark. -->
-  <StreamGeometry x:Key="IconCheck">M2,8 L4,6 L7,9 L13,3 L14,5 L7,12 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconSearch">M21,21 L16.66,16.66 M11,3 A8,8 0 1 0 11,19 A8,8 0 1 0 11,3 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconQr">M4,3 H7 A1,1 0 0 1 8,4 V7 A1,1 0 0 1 7,8 H4 A1,1 0 0 1 3,7 V4 A1,1 0 0 1 4,3 Z M17,3 H20 A1,1 0 0 1 21,4 V7 A1,1 0 0 1 20,8 H17 A1,1 0 0 1 16,7 V4 A1,1 0 0 1 17,3 Z M4,16 H7 A1,1 0 0 1 8,17 V20 A1,1 0 0 1 7,21 H4 A1,1 0 0 1 3,20 V17 A1,1 0 0 1 4,16 Z M21,16 h-3 a2,2 0 0 0 -2,2 v3 M21,21 v0.01 M12,7 v3 a2,2 0 0 1 -2,2 H7 M3,12 h0.01 M12,3 h0.01 M12,16 v0.01 M16,12 h1 M21,12 v0.01 M12,21 v-1</StreamGeometry>
+  <StreamGeometry x:Key="IconClose">M18,6 L6,18 M6,6 L18,18</StreamGeometry>
+  <StreamGeometry x:Key="IconEdit">M13,21 h8 M15,5 L19,9 M21.174,6.812 a1,1 0 0 0 -3.986,-3.987 L3.842,16.174 a2,2 0 0 0 -0.5,0.83 l-1.321,4.352 a0.5,0.5 0 0 0 0.623,0.622 l4.353,-1.32 a2,2 0 0 0 0.83,-0.497 z</StreamGeometry>
+  <StreamGeometry x:Key="IconCheck">M20,6 L9,17 L4,12</StreamGeometry>
 
-  <!--
-    Settings section icons. Each ~16x16, monochrome, fits next to the section
-    header at 18x18 displayed size.
-  -->
-  <!-- IconAppearance — half-filled disc (left half) — theme/contrast affordance. -->
-  <StreamGeometry x:Key="IconAppearance">M8,3 A5,5 0 0 0 8,13 Z M8,3 A5,5 0 1 1 8,13 A5,5 0 1 1 8,3 Z M8,4.5 A3.5,3.5 0 1 1 8,11.5 A3.5,3.5 0 1 1 8,4.5 Z</StreamGeometry>
-  <!-- IconVideo — play silhouette: filled rect with triangle punched out. -->
-  <StreamGeometry x:Key="IconVideo">M2,4 H14 V12 H2 Z M6,6 L11,8 L6,10 Z</StreamGeometry>
-  <!-- IconAdvanced — gear: ring with four cardinal teeth. -->
-  <StreamGeometry x:Key="IconAdvanced">M8,4 A4,4 0 1 1 8,12 A4,4 0 1 1 8,4 Z M8,5.5 A2.5,2.5 0 1 1 8,10.5 A2.5,2.5 0 1 1 8,5.5 Z M7,2 H9 V4.2 H7 Z M7,11.8 H9 V14 H7 Z M2,7 H4.2 V9 H2 Z M11.8,7 H14 V9 H11.8 Z</StreamGeometry>
-  <!-- IconAbout — i in a circle. -->
-  <StreamGeometry x:Key="IconAbout">M8,3 A5,5 0 1 1 8,13 A5,5 0 1 1 8,3 Z M8,4.5 A3.5,3.5 0 1 1 8,11.5 A3.5,3.5 0 1 1 8,4.5 Z M7.2,7.5 H8.8 V11 H7.2 Z M7.2,5.5 H8.8 V6.7 H7.2 Z</StreamGeometry>
+  <!-- Section icons for Settings (Lucide paths). -->
+  <!-- IconAppearance — palette. -->
+  <StreamGeometry x:Key="IconAppearance">M12,22 a1,1 0 0 1 0,-20 a10,9 0 0 1 10,9 a5,5 0 0 1 -5,5 h-2.25 a1.75,1.75 0 0 0 -1.4,2.8 l0.3,0.4 a1.75,1.75 0 0 1 -1.4,2.8 z M14,6.5 A0.5,0.5 0 1 1 13,6.5 A0.5,0.5 0 1 1 14,6.5 Z M18,10.5 A0.5,0.5 0 1 1 17,10.5 A0.5,0.5 0 1 1 18,10.5 Z M7,12.5 A0.5,0.5 0 1 1 6,12.5 A0.5,0.5 0 1 1 7,12.5 Z M9,7.5 A0.5,0.5 0 1 1 8,7.5 A0.5,0.5 0 1 1 9,7.5 Z</StreamGeometry>
+  <!-- IconVideo — monitor with play triangle. -->
+  <StreamGeometry x:Key="IconVideo">M15.033,9.44 a0.647,0.647 0 0 1 0,1.12 l-4.065,2.352 a0.645,0.645 0 0 1 -0.968,-0.56 V7.648 a0.645,0.645 0 0 1 0.967,-0.56 z M12,17 v4 M8,21 h8 M4,3 H20 A2,2 0 0 1 22,5 V15 A2,2 0 0 1 20,17 H4 A2,2 0 0 1 2,15 V5 A2,2 0 0 1 4,3 Z</StreamGeometry>
+  <!-- IconRecord — disc (concentric circles), for Recording section. -->
+  <StreamGeometry x:Key="IconRecord">M2,12 A10,10 0 1 0 22,12 A10,10 0 1 0 2,12 Z M10,12 A2,2 0 1 0 14,12 A2,2 0 1 0 10,12 Z</StreamGeometry>
+  <!-- IconRadar — for Discovery section (LAN scan affordance). -->
+  <StreamGeometry x:Key="IconRadar">M19.07,4.93 A10,10 0 0 0 6.99,3.34 M4,6 h0.01 M2.29,9.62 A10,10 0 1 0 21.31,8.35 M16.24,7.76 A6,6 0 1 0 8.23,16.67 M12,18 h0.01 M17.99,11.66 A6,6 0 0 1 15.77,16.67 M10,12 A2,2 0 1 0 14,12 A2,2 0 1 0 10,12 Z M13.41,10.59 L19.07,4.93</StreamGeometry>
+  <!-- IconAdvanced — sliders-horizontal. -->
+  <StreamGeometry x:Key="IconAdvanced">M10,5 H3 M12,19 H3 M14,3 V7 M16,17 V21 M21,12 H12 M21,19 H16 M21,5 H14 M8,10 V14 M8,12 H3</StreamGeometry>
+  <!-- IconAbout — info (i in circle). -->
+  <StreamGeometry x:Key="IconAbout">M2,12 A10,10 0 1 0 22,12 A10,10 0 1 0 2,12 Z M12,16 v-4 M12,8 h0.01</StreamGeometry>
 
 </ResourceDictionary>

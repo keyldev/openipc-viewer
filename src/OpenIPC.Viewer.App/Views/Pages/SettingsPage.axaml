@@ -23,10 +23,10 @@
       <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector="PathIcon.section-icon">
-      <Setter Property="Width" Value="18" />
-      <Setter Property="Height" Value="18" />
-      <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    <Style Selector="Path.section-icon">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
+      <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <!-- Row: label on the left (wraps), control on the right. Stays one line
@@ -60,7 +60,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconAppearance}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconAppearance}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Appearance], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
@@ -86,7 +86,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconVideo}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconVideo}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Video], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
@@ -119,7 +119,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconRecordings}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconRecord}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Recording], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
@@ -155,7 +155,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconSearch}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconRadar}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Discovery], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
@@ -170,7 +170,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconAdvanced}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconAdvanced}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.Advanced], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>
@@ -201,7 +201,7 @@
       <Border Classes="section">
         <StackPanel Spacing="14">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <PathIcon Classes="section-icon" Data="{StaticResource IconAbout}" />
+            <Path Classes="lucide section-icon" Data="{StaticResource IconAbout}" />
             <TextBlock Classes="section-title"
                        Text="{Binding [Settings.About], Source={x:Static svc:Localizer.Instance}}" />
           </StackPanel>

@@ -1,0 +1,23 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Lucide icon convention. Source paths are 24×24 viewBox stroked with
+    stroke-width=2, round line-cap + line-join. We render via Path with
+    Stretch=Uniform so the same geometry scales to whatever Width/Height the
+    callsite asks for. StrokeThickness 1.5 reads cleanly at 16–20px — bump
+    to 2 if a callsite displays at 24+.
+
+    Usage:
+      <Path Classes="lucide" Data="{StaticResource IconSearch}"
+            Stroke="{StaticResource TextPrimaryBrush}" Width="18" Height="18" />
+  -->
+  <Style Selector="Path.lucide">
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+    <Setter Property="Fill" Value="Transparent" />
+  </Style>
+
+</Styles>

@@ -36,7 +36,11 @@
          hasn't shipped a patched servicing yet, so pin to the 10.0.0 release. -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.0" />
 
-    <PackageVersion Include="FFmpeg.AutoGen" Version="7.1.1" />
+    <!-- Split package pair from 7.1.1: Abstractions defines the ffmpeg facade
+         (no broken cctor — see PR #344), DynamicallyLoaded provides the loader
+         we hook on Android via DynamicallyLoadedBindings.FunctionResolver. -->
+    <PackageVersion Include="FFmpeg.AutoGen.Abstractions" Version="7.1.1" />
+    <PackageVersion Include="FFmpeg.AutoGen.Bindings.DynamicallyLoaded" Version="7.1.1" />
 
     <!-- Phase 11.2: QR-code camera adding. ZXing.Net core + the ImageSharp.V3
          binding (pure-managed image load, avoids GDI+ / SkiaSharp version

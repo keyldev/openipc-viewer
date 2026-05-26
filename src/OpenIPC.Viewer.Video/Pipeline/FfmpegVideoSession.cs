@@ -4,7 +4,7 @@ using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using FFmpeg.AutoGen;
+using FFmpeg.AutoGen.Abstractions;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Core.Entities;
 using OpenIPC.Viewer.Core.Video;
@@ -358,8 +358,8 @@ internal sealed class FfmpegVideoSession : IVideoSession
         {
             fixed (byte* dst = bgra)
             {
-                var dstData = new byte_ptrArray4 { [0] = dst };
-                var dstLinesize = new int_array4 { [0] = stride };
+                var dstData = new byte_ptr4 { [0] = dst };
+                var dstLinesize = new int4 { [0] = stride };
                 ffmpeg.sws_scale(sws, frame->data, frame->linesize, 0, _height, dstData, dstLinesize);
             }
 

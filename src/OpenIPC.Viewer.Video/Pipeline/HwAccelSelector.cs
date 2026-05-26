@@ -1,5 +1,5 @@
 using System;
-using FFmpeg.AutoGen;
+using FFmpeg.AutoGen.Abstractions;
 using Microsoft.Extensions.Logging;
 using OpenIPC.Viewer.Core.Video;
 

@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using System.Threading;
-using FFmpeg.AutoGen;
+using FFmpeg.AutoGen.Abstractions;
+using FFmpeg.AutoGen.Bindings.DynamicallyLoaded;
 
 namespace OpenIPC.Viewer.Video.Pipeline;
 
@@ -17,10 +18,10 @@ internal static class FfmpegRuntime
         if (OperatingSystem.IsAndroid())
         {
             // FFmpeg.AutoGen 7.1.1's FunctionResolverFactory.Create() throws
-            // PlatformNotSupportedException on Android (Environment.OSVersion.Platform
-            // reports Other). DynamicallyLoadedBindings.Initialize() — called from the
-            // ffmpeg static ctor — uses this field if non-null, otherwise invokes the
-            // throwing factory. Pre-setting bypasses the broken path entirely.
+            // PlatformNotSupportedException on Android — RuntimeInformation
+            // .IsOSPlatform(Linux) returns false (Android is its own platform
+            // in .NET 6+). Initialize() uses FunctionResolver if set, otherwise
+            // calls the broken factory. Setting it here bypasses the throw.
             DynamicallyLoadedBindings.FunctionResolver = new AndroidFunctionResolver();
         }
 
@@ -28,11 +29,15 @@ internal static class FfmpegRuntime
 
         try
         {
-            // RootPath assignment is the FIRST touch of the ffmpeg static class
-            // and triggers its type initializer — any DllImport/loader failure
-            // inside surfaces here wrapped in TypeInitializationException.
-            // Must stay inside try.
-            ffmpeg.RootPath = nativeDir;
+            // Replaces the old ffmpeg.RootPath setter. The Abstractions.ffmpeg
+            // facade no longer owns the loader path; LibrariesPath on
+            // DynamicallyLoadedBindings is the single source of truth.
+            DynamicallyLoadedBindings.LibrariesPath = nativeDir;
+
+            // Abstractions.ffmpeg cctor doesn't auto-invoke Initialize the way
+            // the old monolithic FFmpeg.AutoGen package did — we have to call
+            // it explicitly to populate the vectors before touching av_*.
+            DynamicallyLoadedBindings.Initialize();
 
             // Touch one function so the P/Invoke loader resolves the native
             // libs early — anything missing surfaces here instead of mid-stream.

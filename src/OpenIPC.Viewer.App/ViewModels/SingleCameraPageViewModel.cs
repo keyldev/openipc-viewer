@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -224,7 +225,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         catch (Exception ex)
         {
             _logger.LogError(ex, "Toggle recording failed for {CameraId}", _camera.Id);
-            ErrorMessage = $"Recording failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.RecordingFailedFormat"], ex.Message);
         }
     }
 
@@ -364,7 +366,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
     {
         if (!IsMajestic || MajesticConfig is null) return;
         ApplyInProgress = true;
-        ApplyStatus = "Applying…";
+        ApplyStatus = Localizer.Instance["CameraPage.ApplyingStatus"];
 
         try
         {
@@ -382,16 +384,17 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
             await _majestic.UpdateConfigAsync(endpoint, patch, cts.Token).ConfigureAwait(true);
 
-            ApplyStatus = "Applied. Restarting stream…";
+            ApplyStatus = Localizer.Instance["CameraPage.AppliedRestarting"];
             // ReloadStreamAsync -> ActivateAsync -> InitMajesticAsync refreshes
             // config + drafts in one pass, so no extra fetch needed here.
             await ReloadStreamAsync().ConfigureAwait(true);
-            ApplyStatus = "Done.";
+            ApplyStatus = Localizer.Instance["CameraPage.ApplyDone"];
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Apply Majestic config failed");
-            ApplyStatus = $"Failed: {ex.Message}";
+            ApplyStatus = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.ApplyFailedFormat"], ex.Message);
         }
         finally
         {
@@ -445,7 +448,7 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         if (edited == initial) return;
 
         ApplyInProgress = true;
-        ApplyStatus = "Applying raw config…";
+        ApplyStatus = Localizer.Instance["CameraPage.ApplyingRawStatus"];
         try
         {
             var creds = await _directory.GetCredentialsAsync(_camera.Id, CancellationToken.None).ConfigureAwait(true);
@@ -453,14 +456,15 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await _majestic.UpdateRawConfigAsync(endpoint, edited, cts.Token).ConfigureAwait(true);
 
-            ApplyStatus = "Applied. Restarting stream…";
+            ApplyStatus = Localizer.Instance["CameraPage.AppliedRestarting"];
             await ReloadStreamAsync().ConfigureAwait(true);
-            ApplyStatus = "Done.";
+            ApplyStatus = Localizer.Instance["CameraPage.ApplyDone"];
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Apply raw Majestic config failed");
-            ApplyStatus = $"Failed: {ex.Message}";
+            ApplyStatus = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.ApplyFailedFormat"], ex.Message);
         }
         finally
         {
@@ -605,7 +609,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         catch (Exception ex)
         {
             _logger.LogError(ex, "Snapshot failed");
-            ErrorMessage = $"Snapshot failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.SnapshotFailedFormat"], ex.Message);
         }
     }
 
@@ -625,7 +630,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Open snapshot failed");
-            ErrorMessage = $"Open snapshot failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.OpenSnapshotFailedFormat"], ex.Message);
         }
     }
 
@@ -641,7 +647,8 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Copy snapshot failed");
-            ErrorMessage = $"Copy snapshot failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.CopySnapshotFailedFormat"], ex.Message);
         }
     }
 
@@ -652,14 +659,18 @@ public sealed partial class SingleCameraPageViewModel : ViewModelBase, IAsyncDis
         if (string.IsNullOrEmpty(path)) return;
         try
         {
-            var target = await _dialogs.PickSaveFileAsync(Path.GetFileName(path), "Save snapshot", "jpg").ConfigureAwait(true);
+            var target = await _dialogs.PickSaveFileAsync(
+                Path.GetFileName(path),
+                Localizer.Instance["Snapshot.SaveAsTitle"],
+                "jpg").ConfigureAwait(true);
             if (string.IsNullOrEmpty(target)) return;
             File.Copy(path, target, overwrite: true);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Save snapshot as failed");
-            ErrorMessage = $"Save snapshot failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentCulture,
+                Localizer.Instance["CameraPage.SaveSnapshotFailedFormat"], ex.Message);
         }
     }
 

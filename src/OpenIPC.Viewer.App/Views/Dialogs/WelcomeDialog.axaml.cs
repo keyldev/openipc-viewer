@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using OpenIPC.Viewer.App.Services;
 
 namespace OpenIPC.Viewer.App.Views.Dialogs;
 
@@ -12,5 +13,11 @@ public sealed partial class WelcomeDialog : Window
         _ = content.Completion.ContinueWith(t =>
             Dispatcher.UIThread.Post(() => Close(t.Result)),
             System.Threading.Tasks.TaskScheduler.Default);
+    }
+
+    public void Configure(UserSettingsService settings)
+    {
+        var content = this.FindControl<WelcomeDialogContent>("InnerContent")!;
+        content.Configure(settings);
     }
 }

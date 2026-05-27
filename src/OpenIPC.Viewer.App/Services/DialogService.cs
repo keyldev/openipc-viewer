@@ -14,6 +14,10 @@ namespace OpenIPC.Viewer.App.Services;
 
 public sealed class DialogService : IDialogService
 {
+    private readonly UserSettingsService _settings;
+
+    public DialogService(UserSettingsService settings) => _settings = settings;
+
     public Task<CameraEditorResult?> ShowCameraEditorAsync(CameraEditorViewModel viewModel)
     {
         if (OverlayDialogPresenter.IsMobile)
@@ -66,12 +70,14 @@ public sealed class DialogService : IDialogService
         if (OverlayDialogPresenter.IsMobile)
         {
             var content = new WelcomeDialogContent();
+            content.Configure(_settings);
             return OverlayDialogPresenter.ShowAsync(content, content.Completion);
         }
 
         var owner = ResolveOwner();
         if (owner is null) return Task.FromResult(WelcomeResult.Skip);
         var dlg = new WelcomeDialog();
+        dlg.Configure(_settings);
         return dlg.ShowDialog<WelcomeResult>(owner);
     }
 

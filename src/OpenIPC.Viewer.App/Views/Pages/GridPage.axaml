@@ -3,6 +3,7 @@
              xmlns:vm="using:OpenIPC.Viewer.App.ViewModels"
              xmlns:controls="using:OpenIPC.Viewer.App.Controls"
              xmlns:conv="using:OpenIPC.Viewer.App.Converters"
+             xmlns:svc="using:OpenIPC.Viewer.App.Services"
              xmlns:input="using:Avalonia.Input"
              x:Class="OpenIPC.Viewer.App.Views.Pages.GridPage"
              x:DataType="vm:GridPageViewModel">
@@ -56,7 +57,7 @@
               <!-- Empty placeholder -->
               <Border IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNull}}"
                       Background="{StaticResource Bg1Brush}">
-                <TextBlock Text="no camera"
+                <TextBlock Text="{Binding [Grid.EmptySlot], Source={x:Static svc:Localizer.Instance}}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource TextTertiaryBrush}"

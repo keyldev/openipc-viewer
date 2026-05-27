@@ -146,12 +146,12 @@
             <Grid ColumnDefinitions="*,Auto" Margin="2,4,2,2">
               <TextBox Grid.Column="0"
                        Text="{Binding NewPresetName, Mode=TwoWay}"
-                       PlaceholderText="preset name"
+                       PlaceholderText="{Binding [CameraPage.Preset.Placeholder], Source={x:Static svc:Localizer.Instance}}"
                        FontSize="11"
                        Padding="6,4"
                        Margin="0,0,4,0" />
               <Button Grid.Column="1"
-                      Content="+ Save"
+                      Content="{Binding [CameraPage.Preset.Save], Source={x:Static svc:Localizer.Instance}}"
                       Command="{Binding SavePresetCommand}"
                       Padding="8,4"
                       Background="{StaticResource AccentBrush}"
@@ -231,22 +231,22 @@
             <Run Text="·" />
             <Run Text="{Binding MajesticInfo.FirmwareVersion, FallbackValue='?'}" />
             <Run Text="·" />
-            <Run Text="night:" />
+            <Run Text="{Binding [CameraPage.Majestic.NightPrefix], Source={x:Static svc:Localizer.Instance}}" />
             <Run Text="{Binding CurrentNightMode}" />
           </TextBlock>
         </Grid>
 
         <!-- Editable knobs -->
         <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*,Auto,*,Auto,*" Margin="0,0,0,0">
-          <TextBlock Grid.Column="0" Text="Res" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,0,6,0" />
+          <TextBlock Grid.Column="0" Text="{Binding [CameraPage.Majestic.Resolution], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,0,6,0" />
           <ComboBox Grid.Column="1" ItemsSource="{Binding ResolutionOptions}" SelectedItem="{Binding DraftResolution, Mode=TwoWay}" MinWidth="120" />
-          <TextBlock Grid.Column="2" Text="Codec" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
+          <TextBlock Grid.Column="2" Text="{Binding [CameraPage.Majestic.Codec], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
           <ComboBox Grid.Column="3" ItemsSource="{Binding CodecOptions}" SelectedItem="{Binding DraftCodec, Mode=TwoWay}" MinWidth="80" />
-          <TextBlock Grid.Column="4" Text="FPS" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
+          <TextBlock Grid.Column="4" Text="{Binding [CameraPage.Majestic.Fps], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
           <ComboBox Grid.Column="5" ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding DraftFps, Mode=TwoWay}" MinWidth="70" />
-          <TextBlock Grid.Column="6" Text="Bitrate" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
+          <TextBlock Grid.Column="6" Text="{Binding [CameraPage.Majestic.Bitrate], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
           <NumericUpDown Grid.Column="7" Value="{Binding DraftBitrate, Mode=TwoWay}" Minimum="256" Maximum="16384" Increment="256" FormatString="0" MinWidth="100" />
-          <TextBlock Grid.Column="8" Text="Profile" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
+          <TextBlock Grid.Column="8" Text="{Binding [CameraPage.Majestic.Profile], Source={x:Static svc:Localizer.Instance}}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="10,0,6,0" />
           <ComboBox Grid.Column="9" ItemsSource="{Binding ProfileOptions}" SelectedItem="{Binding DraftProfile, Mode=TwoWay}" MinWidth="100" />
         </Grid>
 
@@ -268,11 +268,11 @@
 
         <!-- Action row: night mode + apply + view raw + edit raw -->
         <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
-          <Button Grid.Column="0" Content="Day" Command="{Binding SetNightModeCommand}" CommandParameter="day"
+          <Button Grid.Column="0" Content="{Binding [CameraPage.NightMode.Day], Source={x:Static svc:Localizer.Instance}}" Command="{Binding SetNightModeCommand}" CommandParameter="day"
                   Padding="10,4" FontSize="11" Background="{StaticResource Bg3Brush}" Foreground="{StaticResource TextPrimaryBrush}" CornerRadius="4" Margin="0,0,4,0" />
-          <Button Grid.Column="1" Content="Night" Command="{Binding SetNightModeCommand}" CommandParameter="night"
+          <Button Grid.Column="1" Content="{Binding [CameraPage.NightMode.Night], Source={x:Static svc:Localizer.Instance}}" Command="{Binding SetNightModeCommand}" CommandParameter="night"
                   Padding="10,4" FontSize="11" Background="{StaticResource Bg3Brush}" Foreground="{StaticResource TextPrimaryBrush}" CornerRadius="4" Margin="0,0,4,0" />
-          <Button Grid.Column="2" Content="Auto" Command="{Binding SetNightModeCommand}" CommandParameter="auto"
+          <Button Grid.Column="2" Content="{Binding [CameraPage.NightMode.Auto], Source={x:Static svc:Localizer.Instance}}" Command="{Binding SetNightModeCommand}" CommandParameter="auto"
                   Padding="10,4" FontSize="11" Background="{StaticResource Bg3Brush}" Foreground="{StaticResource TextPrimaryBrush}" CornerRadius="4" />
 
           <TextBlock Grid.Column="3" Text="{Binding ApplyStatus}"
@@ -281,19 +281,19 @@
                      Foreground="{StaticResource TextSecondaryBrush}"
                      IsVisible="{Binding ApplyStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-          <Button Grid.Column="4" Content="View raw"
+          <Button Grid.Column="4" Content="{Binding [CameraPage.Majestic.ViewRaw], Source={x:Static svc:Localizer.Instance}}"
                   Command="{Binding ToggleRawJsonCommand}"
                   Padding="10,4" FontSize="11"
                   Background="Transparent" BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1"
                   CornerRadius="4" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,8,0" />
-          <Button Grid.Column="5" Content="Edit raw"
+          <Button Grid.Column="5" Content="{Binding [CameraPage.Majestic.EditRaw], Source={x:Static svc:Localizer.Instance}}"
                   Command="{Binding EditRawConfigCommand}"
                   IsVisible="{Binding IsRawConfigEditorEnabled}"
                   IsEnabled="{Binding !ApplyInProgress}"
                   Padding="10,4" FontSize="11"
                   Background="Transparent" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
                   CornerRadius="4" Foreground="{StaticResource WarningBrush}" Margin="0,0,8,0" />
-          <Button Grid.Column="6" Content="Apply"
+          <Button Grid.Column="6" Content="{Binding [Common.Apply], Source={x:Static svc:Localizer.Instance}}"
                   Command="{Binding ApplyConfigCommand}"
                   IsEnabled="{Binding !ApplyInProgress}"
                   Padding="14,4" FontSize="11"
@@ -399,11 +399,11 @@
               Foreground="White"
               Padding="14,8"
               CornerRadius="6"
-              Content="■ Stop"
+              Content="{Binding [CameraPage.Stop], Source={x:Static svc:Localizer.Instance}}"
               Margin="0,0,8,0" />
 
       <Button Grid.Column="3"
-              Content="Snapshot"
+              Content="{Binding [CameraPage.Snapshot], Source={x:Static svc:Localizer.Instance}}"
               Command="{Binding SnapshotCommand}"
               Background="{StaticResource AccentBrush}"
               Foreground="White"

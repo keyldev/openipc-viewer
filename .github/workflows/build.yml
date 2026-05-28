@@ -48,14 +48,17 @@ jobs:
         shell: pwsh
         run: ./tools/fetch-ffmpeg.ps1
 
+      # Mobile heads (Android/iOS) need workloads not installed on these
+      # runners and build in their own jobs — so the desktop matrix uses a
+      # solution that excludes them.
       - name: Restore
-        run: dotnet restore OpenIPC.Viewer.slnx
+        run: dotnet restore OpenIPC.Viewer.Desktop.slnx
 
       - name: Build
-        run: dotnet build OpenIPC.Viewer.slnx --configuration Release --no-restore /warnaserror
+        run: dotnet build OpenIPC.Viewer.Desktop.slnx --configuration Release --no-restore /warnaserror
 
       - name: Test
-        run: dotnet test OpenIPC.Viewer.slnx --configuration Release --no-build --verbosity normal
+        run: dotnet test OpenIPC.Viewer.Desktop.slnx --configuration Release --no-build --verbosity normal
 
       - name: Publish
         run: dotnet publish src/OpenIPC.Viewer.Desktop/OpenIPC.Viewer.Desktop.csproj -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o publish/${{ matrix.rid }}

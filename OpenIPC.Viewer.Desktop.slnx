@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenIPC.Viewer.App/OpenIPC.Viewer.App.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Composition/OpenIPC.Viewer.Composition.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Core/OpenIPC.Viewer.Core.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Desktop/OpenIPC.Viewer.Desktop.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Devices/OpenIPC.Viewer.Devices.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Infrastructure/OpenIPC.Viewer.Infrastructure.csproj" />
+    <Project Path="src/OpenIPC.Viewer.Video/OpenIPC.Viewer.Video.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenIPC.Viewer.Core.Tests/OpenIPC.Viewer.Core.Tests.csproj" />
+    <Project Path="tests/OpenIPC.Viewer.Video.Tests/OpenIPC.Viewer.Video.Tests.csproj" />
+  </Folder>
+</Solution>

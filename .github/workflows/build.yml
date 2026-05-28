@@ -48,17 +48,22 @@ jobs:
         shell: pwsh
         run: ./tools/fetch-ffmpeg.ps1
 
+      # Mobile heads (Android/iOS) need workloads not installed on these
+      # runners and build in their own jobs — so the desktop matrix uses a
+      # solution that excludes them. The shared App project still multi-targets
+      # the mobile TFMs, so IncludeMobileTargets=false strips them to net9.0 for
+      # these builds (a solution build / restore evaluates every TFM otherwise).
       - name: Restore
-        run: dotnet restore OpenIPC.Viewer.slnx
+        run: dotnet restore OpenIPC.Viewer.Desktop.slnx -p:IncludeMobileTargets=false
 
       - name: Build
-        run: dotnet build OpenIPC.Viewer.slnx --configuration Release --no-restore /warnaserror
+        run: dotnet build OpenIPC.Viewer.Desktop.slnx --configuration Release --no-restore /warnaserror -p:IncludeMobileTargets=false
 
       - name: Test
-        run: dotnet test OpenIPC.Viewer.slnx --configuration Release --no-build --verbosity normal
+        run: dotnet test OpenIPC.Viewer.Desktop.slnx --configuration Release --no-build --verbosity normal -p:IncludeMobileTargets=false
 
       - name: Publish
-        run: dotnet publish src/OpenIPC.Viewer.Desktop/OpenIPC.Viewer.Desktop.csproj -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o publish/${{ matrix.rid }}
+        run: dotnet publish src/OpenIPC.Viewer.Desktop/OpenIPC.Viewer.Desktop.csproj -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeMobileTargets=false -o publish/${{ matrix.rid }}
 
       - name: Package (zip)
         if: matrix.archive == 'zip'
@@ -163,6 +168,11 @@ jobs:
   ios:
     runs-on: macos-14
     name: build (ios)
+    # Non-blocking: the .NET 10 iOS workload pins to an Xcode version the
+    # GitHub macOS runners don't ship yet (workload 26.5 needs Xcode 26.5).
+    # Keep iOS best-effort until a matching runner image is available, rather
+    # than failing the whole workflow. See aka.ms/xcode-requirement.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -174,11 +184,14 @@ jobs:
       - name: Install ios workload
         run: dotnet workload install ios
 
+      # iOS Release builds for the device RID (ios-arm64), so restore must be
+      # RID-specific or the assets file won't have a net10.0-ios/ios-arm64
+      # target and the --no-restore build fails with NETSDK1047.
       - name: Restore
-        run: dotnet restore src/OpenIPC.Viewer.iOS/OpenIPC.Viewer.iOS.csproj
+        run: dotnet restore src/OpenIPC.Viewer.iOS/OpenIPC.Viewer.iOS.csproj -r ios-arm64
 
       - name: Build (Release, warnings as errors)
-        run: dotnet build src/OpenIPC.Viewer.iOS/OpenIPC.Viewer.iOS.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+        run: dotnet build src/OpenIPC.Viewer.iOS/OpenIPC.Viewer.iOS.csproj -c Release -r ios-arm64 --no-restore -p:TreatWarningsAsErrors=true
 
       # Unsigned IPA — TestFlight signing is post-MVP (Phase 11). The artifact
       # is a Release-published app bundle suitable for ad-hoc install via Xcode
@@ -197,7 +210,10 @@ jobs:
 
   release:
     needs: [build, android, ios]
-    if: startsWith(github.ref, 'refs/tags/v')
+    # iOS is best-effort (see continue-on-error above), so don't gate releases
+    # on it — require only the desktop matrix + android to succeed. Any iOS
+    # artifact that did build still gets merged in via download-artifact.
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success' && needs.android.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
